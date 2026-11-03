@@ -47,7 +47,8 @@ services:
 
   worker:
     build:
-      context: ../ml
+      context: ..
+      dockerfile: ml/Dockerfile
     restart: unless-stopped
     depends_on:
       postgres:
@@ -59,6 +60,7 @@ services:
       DB_USER: ${POSTGRES_USER:-linesight}
       DB_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
       STORAGE_DIR: /data
+      JOB_PROCESSOR: ${JOB_PROCESSOR:-processor}
     volumes:
       - media_data:/data
     networks:

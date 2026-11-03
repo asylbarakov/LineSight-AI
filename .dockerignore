@@ -1,0 +1,16 @@
+.git
+.env
+.env.*
+.venv
+**/__pycache__
+**/.pytest_cache
+**/tests
+**/node_modules
+**/.next
+**/*.mp4
+**/*.mov
+**/*.avi
+**/*.mkv
+**/*.onnx
+**/*.pt
+**/*.pth
