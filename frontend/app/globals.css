@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #0b0f14;
+  --surface: #121821;
+  --surface-2: #1a2230;
+  --line: #263041;
+  --fg: #e6ebf2;
+  --muted: #8b97a8;
+  --accent: #4f9cff;
+  --ok: #3ecf8e;
+  --warn: #f5a524;
+  --danger: #f2555a;
+  --info: #8b97a8;
+}
+
+html, body { background: var(--bg); color: var(--fg); }
+body { font-feature-settings: "tnum"; }
+
+@keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+.skeleton {
+  background: linear-gradient(90deg, var(--surface) 25%, var(--surface-2) 50%, var(--surface) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: 8px;
+}
