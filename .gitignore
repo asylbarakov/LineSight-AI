@@ -1,0 +1,23 @@
+# данные и секреты
+data/*
+!data/.gitkeep
+.env
+*.pt
+*.onnx
+
+# python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.ruff_cache/
+
+# node
+node_modules/
+.next/
+out/
+
+# os / ide
+.DS_Store
+.idea/
+.vscode/
