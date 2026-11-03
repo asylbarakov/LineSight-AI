@@ -9,6 +9,7 @@ from .storage import storage_writable
 logger = logging.getLogger(__name__)
 app = FastAPI(title="LineSight AI API")
 
+
 @app.get("/health", tags=["system"])
 def health() -> JSONResponse:
     try:
@@ -28,3 +29,7 @@ def health() -> JSONResponse:
             "storage": "ok" if storage_ok else "unavailable",
         },
     )
+
+from .routes import router as inspection_router
+
+app.include_router(inspection_router)

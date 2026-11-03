@@ -1,5 +1,6 @@
 from .config import get_settings
 
+
 def ping_db():
     import psycopg
 

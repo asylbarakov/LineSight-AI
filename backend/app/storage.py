@@ -1,7 +1,9 @@
 import tempfile
+
 from .config import get_settings
 
-def storage_writable():
+
+def storage_writable() -> bool:
     root = get_settings().storage_dir
     if not root.is_dir():
         return False

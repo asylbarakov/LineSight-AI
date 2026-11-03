@@ -5,10 +5,15 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     STORAGE_DIR=/data
 
 WORKDIR /app
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 COPY app/ ./app/
+COPY alembic.ini ./alembic.ini
+COPY migrations/ ./migrations/
 
 RUN groupadd --gid 10001 linesight \
     && useradd --uid 10001 --gid linesight --no-create-home linesight \

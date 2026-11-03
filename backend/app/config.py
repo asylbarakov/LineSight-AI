@@ -12,6 +12,7 @@ class Settings:
     db_password: str
     storage_dir: Path
 
+
 def get_settings() -> Settings:
     return Settings(
         db_host=os.getenv("DB_HOST", "localhost"),
