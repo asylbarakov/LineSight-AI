@@ -1,0 +1,11 @@
+# Диапазоны версий (без жёстких пинов): в песочнице разработки не было доступа к PyPI.
+# Для финальной сборки (задача 52) зафиксируйте версии: `pip freeze > backend/requirements.lock.txt`.
+fastapi>=0.110,<1
+uvicorn[standard]>=0.27
+sqlalchemy>=2.0,<2.1
+psycopg[binary]>=3.1
+python-multipart>=0.0.9
+pyjwt>=2.8
+reportlab>=4.0
+numpy>=1.26
+opencv-python-headless>=4.9

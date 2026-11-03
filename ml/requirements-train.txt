@@ -1,0 +1,6 @@
+# Обучение и инференс YOLO (Colab/Kaggle/локальная GPU). Не входит в CI.
+ultralytics>=8.3
+huggingface_hub>=0.24
+pyyaml
+opencv-python-headless>=4.9
+numpy>=1.26

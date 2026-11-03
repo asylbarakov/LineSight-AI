@@ -1,0 +1,90 @@
+# Запуск: cp .env.example .env && docker compose up --build
+# Порты открыты только на 127.0.0.1; Postgres наружу не публикуется.
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-linesight}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-linesight}
+      POSTGRES_DB: ${POSTGRES_DB:-linesight}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-linesight} -d ${POSTGRES_DB:-linesight}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+      args:
+        INSTALL_YOLO: "0"
+    env_file: .env
+    environment:
+      DATA_DIR: /data
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - media_data:/data
+      - ./data/demo:/data/demo
+    ports:
+      - "127.0.0.1:8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8000/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+      args:
+        INSTALL_YOLO: "1"
+    command: ["python", "-m", "app.worker"]
+    env_file: .env
+    environment:
+      DATA_DIR: /data
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - media_data:/data
+      - ./data/weights:/data/weights:ro
+    # GPU: раскомментируйте на машине с NVIDIA Container Toolkit
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import app.db\""]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  web:
+    build:
+      context: frontend
+      args:
+        API_INTERNAL_URL: http://api:8000
+    environment:
+      API_INTERNAL_URL: http://api:8000
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:3000:3000"
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  media_data:
