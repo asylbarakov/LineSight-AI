@@ -8,7 +8,7 @@
 
 | Папка | Что внутри |
 | --- | --- |
-| `backend/` | FastAPI: API, БД, хранилище, Celery-воркер |
+| `backend/` | FastAPI: API, БД, хранилище, воркер (очередь в Postgres) |
 | `frontend/` | Next.js + TypeScript + Tailwind, тёмная тема |
 | `ml/` | Предобработка, детекция, трекинг, находки, обучение, синтетика |
 | `data/` | Видео, кадры, веса, демо-данные (в git не попадает) |
@@ -83,7 +83,7 @@ docker compose up --build
 { "id": "5b1f…", "title": "Облёт участка 1", "status": "queued" }
 ```
 
-Ошибки: `415` (не MP4), `413` (больше `MAX_UPLOAD_MB`), `422` с `error_code: "E_VIDEO_INVALID"` (не открывается), `503` (очередь недоступна).
+Ошибки: `415` (не MP4), `413` (больше `MAX_UPLOAD_MB`), `422` с `error_code: "E_VIDEO_INVALID"` (не открывается).
 
 #### `GET /api/inspections`
 
