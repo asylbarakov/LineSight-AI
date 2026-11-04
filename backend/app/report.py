@@ -99,8 +99,25 @@ def _styles() -> dict[str, ParagraphStyle]:
     }
 
 
+def _report_tz():
+    """Часовой пояс для даты в отчёте: REPORT_TZ (например Asia/Almaty), по умолчанию UTC."""
+    name = os.environ.get("REPORT_TZ", "UTC")
+    try:
+        from zoneinfo import ZoneInfo
+
+        return ZoneInfo(name)
+    except Exception:  # noqa: BLE001  (нет базы часовых поясов или опечатка в имени)
+        return timezone.utc
+
+
 def _fmt_dt(dt: datetime | None) -> str:
-    return dt.astimezone().strftime("%d.%m.%Y %H:%M") if dt else "—"
+    """Дата с подписью пояса («04.11.2026 15:37 UTC+5»); время в БД хранится в UTC."""
+    if not dt:
+        return "—"
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    local = dt.astimezone(_report_tz())
+    return local.strftime("%d.%m.%Y %H:%M ") + (local.tzname() or "UTC")
 
 
 def _esc(s: str) -> str:
@@ -157,7 +174,7 @@ def build_pdf(
                 Paragraph(f'{round(f["confidence"] * 100)}%', st["cell"]),
                 Paragraph(texts.STATUS_RU.get(f["status"], f["status"]), st["cell"]),
             ])
-        table = Table(rows, colWidths=[10 * mm, 32 * mm, 56 * mm, 22 * mm, 24 * mm, 28 * mm], repeatRows=1)
+        table = Table(rows, colWidths=[8 * mm, 30 * mm, 48 * mm, 20 * mm, 30 * mm, 34 * mm], repeatRows=1)
         table.setStyle(TableStyle([
             ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#eceff1")),
             ("GRID", (0, 0), (-1, -1), 0.3, colors.lightgrey),

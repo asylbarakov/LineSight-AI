@@ -9,3 +9,4 @@ pyjwt>=2.8
 reportlab>=4.0
 numpy>=1.26
 opencv-python-headless>=4.9
+tzdata
