@@ -1,0 +1,165 @@
+{
+  "tolerance_sec": 2.0,
+  "videos": {
+    "synth_blur.mp4": {
+      "duration_sec": 26.0,
+      "expected": [
+        {
+          "type": "low_visibility",
+          "start_sec": 9.0,
+          "end_sec": 16.0
+        },
+        {
+          "type": "tower",
+          "start_sec": 0.0,
+          "end_sec": 22.81
+        },
+        {
+          "type": "insulator",
+          "start_sec": 0.0,
+          "end_sec": 16.69
+        },
+        {
+          "type": "insulator",
+          "start_sec": 0.0,
+          "end_sec": 22.31
+        },
+        {
+          "type": "tower",
+          "start_sec": 0.0,
+          "end_sec": 26.0
+        },
+        {
+          "type": "insulator",
+          "start_sec": 0.0,
+          "end_sec": 26.0
+        },
+        {
+          "type": "insulator",
+          "start_sec": 0.0,
+          "end_sec": 26.0
+        },
+        {
+          "type": "tower",
+          "start_sec": 7.19,
+          "end_sec": 26.0
+        },
+        {
+          "type": "insulator",
+          "start_sec": 7.69,
+          "end_sec": 26.0
+        },
+        {
+          "type": "insulator",
+          "start_sec": 13.31,
+          "end_sec": 26.0
+        }
+      ]
+    },
+    "synth_clean.mp4": {
+      "duration_sec": 26.0,
+      "expected": [
+        {
+          "type": "tower",
+          "start_sec": 0.0,
+          "end_sec": 22.81
+        },
+        {
+          "type": "insulator",
+          "start_sec": 0.0,
+          "end_sec": 16.69
+        },
+        {
+          "type": "insulator",
+          "start_sec": 0.0,
+          "end_sec": 22.31
+        },
+        {
+          "type": "tower",
+          "start_sec": 0.0,
+          "end_sec": 26.0
+        },
+        {
+          "type": "insulator",
+          "start_sec": 0.0,
+          "end_sec": 26.0
+        },
+        {
+          "type": "insulator",
+          "start_sec": 0.0,
+          "end_sec": 26.0
+        },
+        {
+          "type": "tower",
+          "start_sec": 7.19,
+          "end_sec": 26.0
+        },
+        {
+          "type": "insulator",
+          "start_sec": 7.69,
+          "end_sec": 26.0
+        },
+        {
+          "type": "insulator",
+          "start_sec": 13.31,
+          "end_sec": 26.0
+        }
+      ]
+    },
+    "synth_dark.mp4": {
+      "duration_sec": 26.0,
+      "expected": [
+        {
+          "type": "low_visibility",
+          "start_sec": 10.0,
+          "end_sec": 16.0
+        },
+        {
+          "type": "tower",
+          "start_sec": 0.0,
+          "end_sec": 22.81
+        },
+        {
+          "type": "insulator",
+          "start_sec": 0.0,
+          "end_sec": 16.69
+        },
+        {
+          "type": "insulator",
+          "start_sec": 0.0,
+          "end_sec": 22.31
+        },
+        {
+          "type": "tower",
+          "start_sec": 0.0,
+          "end_sec": 26.0
+        },
+        {
+          "type": "insulator",
+          "start_sec": 0.0,
+          "end_sec": 26.0
+        },
+        {
+          "type": "insulator",
+          "start_sec": 0.0,
+          "end_sec": 26.0
+        },
+        {
+          "type": "tower",
+          "start_sec": 7.19,
+          "end_sec": 26.0
+        },
+        {
+          "type": "insulator",
+          "start_sec": 7.69,
+          "end_sec": 26.0
+        },
+        {
+          "type": "insulator",
+          "start_sec": 13.31,
+          "end_sec": 26.0
+        }
+      ]
+    }
+  }
+}

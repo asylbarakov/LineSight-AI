@@ -1,0 +1,61 @@
+{
+  "video": "synth_dark.mp4",
+  "fps": 10,
+  "duration_sec": 26.0,
+  "width": 960,
+  "height": 540,
+  "low_visibility": [
+    {
+      "start_sec": 10.0,
+      "end_sec": 16.0,
+      "kind": "dark"
+    }
+  ],
+  "objects": [
+    {
+      "class": "tower",
+      "first_sec": 0.0,
+      "last_sec": 22.81
+    },
+    {
+      "class": "insulator",
+      "first_sec": 0.0,
+      "last_sec": 16.69
+    },
+    {
+      "class": "insulator",
+      "first_sec": 0.0,
+      "last_sec": 22.31
+    },
+    {
+      "class": "tower",
+      "first_sec": 0.0,
+      "last_sec": 26.0
+    },
+    {
+      "class": "insulator",
+      "first_sec": 0.0,
+      "last_sec": 26.0
+    },
+    {
+      "class": "insulator",
+      "first_sec": 0.0,
+      "last_sec": 26.0
+    },
+    {
+      "class": "tower",
+      "first_sec": 7.19,
+      "last_sec": 26.0
+    },
+    {
+      "class": "insulator",
+      "first_sec": 7.69,
+      "last_sec": 26.0
+    },
+    {
+      "class": "insulator",
+      "first_sec": 13.31,
+      "last_sec": 26.0
+    }
+  ]
+}
