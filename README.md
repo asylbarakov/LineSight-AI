@@ -25,6 +25,8 @@ docker compose up --build
 
 Интерфейс: http://127.0.0.1:3000, API: http://127.0.0.1:8000/docs.
 
+Приёмочная сборка собирается без нейросети (`DETECTOR=none`, `INSTALL_YOLO=0`), это занимает несколько минут. Образ воркера с YOLO весит несколько ГБ (PyTorch) и собирается долго: `INSTALL_YOLO=1 DETECTOR=yolo docker compose up --build`.
+
 ## Правила работы
 
 - Ветка `main` только через PR с одним ревью, CI на каждый PR.

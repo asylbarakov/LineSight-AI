@@ -45,7 +45,9 @@ services:
       context: .
       dockerfile: backend/Dockerfile
       args:
-        INSTALL_YOLO: "1"
+        # 0 — без нейросети (DETECTOR=none, приёмочная сборка): образ собирается за пару минут.
+        # 1 — с ultralytics и PyTorch (несколько ГБ, долгая сборка): INSTALL_YOLO=1 docker compose up --build
+        INSTALL_YOLO: ${INSTALL_YOLO:-0}
     command: ["python", "-m", "app.worker"]
     env_file: .env
     environment:

@@ -1,7 +1,7 @@
 # Контекст сборки — корень репозитория (нужны backend/ и ml/).
 FROM python:3.12-slim
 
-ARG INSTALL_YOLO=1
+ARG INSTALL_YOLO=0
 ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/srv
 
 RUN apt-get update \
