@@ -60,6 +60,18 @@ def test_defect_detection_by_keywords():
     assert not is_defect("tower")
 
 
+def test_dataset_codes_are_defects_with_russian_names():
+    for code in ("blq_jyjc", "czjyz_ps", "dx_dg", "nw", "yw", "yxdk"):
+        assert is_defect(code)
+        assert not ru_name(code).startswith("Дефект")
+    assert ru_name("czjyz_ps") == "Опорный изолятор: повреждение"
+    assert ru_name("nw") == "Гнездо птицы на линии"
+
+
+def test_dataset_defect_gets_priority_by_confidence():
+    assert compute_priority("czjyz_ps", 0.95, 10.0, TH) == PRIORITY_HIGH
+
+
 def test_ru_names():
     assert ru_name("tower") == "Опора"
     assert ru_name("insulator_crack").startswith("Дефект")
