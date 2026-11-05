@@ -143,6 +143,9 @@ export default function InspectionPage() {
         <div className="rounded-xl border border-danger/40 bg-danger/10 p-5" role="alert">
           <p className="font-medium text-danger">Обработка не удалась{insp.error_code ? ` (${insp.error_code})` : ""}</p>
           <p className="mt-1 text-sm">{errorText(insp.error_code, insp.error_message)}</p>
+          {insp.error_message && insp.error_message !== errorText(insp.error_code) && (
+            <p className="mt-1 text-xs text-muted">Подробности: {insp.error_message}</p>
+          )}
           <Link href="/inspections" className="mt-3 inline-block rounded-md border border-danger/40 px-3 py-1.5 text-sm text-danger hover:bg-danger/10">
             Загрузить заново
           </Link>
