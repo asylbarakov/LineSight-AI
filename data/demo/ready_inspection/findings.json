@@ -1,0 +1,11 @@
+[
+  {
+    "type": "low_visibility",
+    "priority": "insufficient_data",
+    "confidence": 0.987,
+    "timecode_sec": 9.0,
+    "frame_path": "frames/lv_0.jpg",
+    "track_id": 0,
+    "bbox": null
+  }
+]

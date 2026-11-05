@@ -1,0 +1,14 @@
+{
+  "title": "Демо-инспекция",
+  "filename": "synth_blur.mp4",
+  "duration_sec": 26.0,
+  "fps": 93.93,
+  "stage_times": {
+    "decode": 0.553,
+    "detect": 0.0,
+    "track": 0.0,
+    "findings": 0.005,
+    "total": 0.574,
+    "db": 0.018
+  }
+}
