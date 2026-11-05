@@ -13,7 +13,13 @@ COPY backend/requirements.txt backend/requirements.txt
 RUN pip install --no-cache-dir -r backend/requirements.txt
 COPY ml/requirements-train.txt ml/requirements-train.txt
 # YOLO нужен только воркеру; для api-образа можно собрать с --build-arg INSTALL_YOLO=0
-RUN if [ "$INSTALL_YOLO" = "1" ]; then pip install --no-cache-dir ultralytics; fi
+# CPU-сборка PyTorch (~200 МБ) вместо стандартной с CUDA (несколько ГБ): так образ с YOLO собирается в разы быстрее.
+# Для GPU в контейнере соберите с --build-arg TORCH_INDEX=https://download.pytorch.org/whl/cu124 (и NVIDIA Container Toolkit).
+ARG TORCH_INDEX=https://download.pytorch.org/whl/cpu
+RUN if [ "$INSTALL_YOLO" = "1" ]; then \
+      pip install --no-cache-dir torch torchvision --index-url "$TORCH_INDEX" \
+      && pip install --no-cache-dir ultralytics; \
+    fi
 # ultralytics тянет opencv-python (с GUI-библиотеками: libxcb, libGL), которого нет в slim-образе, и затирает
 # каталог cv2 от headless-сборки. Возвращаем headless, иначе `import cv2` падает с libxcb.so.1.
 RUN pip uninstall -y opencv-python opencv-contrib-python 2>/dev/null || true; \
