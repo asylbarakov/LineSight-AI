@@ -23,3 +23,8 @@ dist/
 *.pt
 *.pth
 storage/
+
+# Local dataset feasibility: archives, extracted data, reports and HF cache.
+ml/data/
+ml/runs/
+ml/.cache/

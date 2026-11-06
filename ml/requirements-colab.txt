@@ -1,0 +1,2 @@
+# Install only in Colab. Reuse the runtime's compatible torch/torchvision/CUDA.
+ultralytics==8.3.228

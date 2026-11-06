@@ -1,0 +1,6 @@
+# CPU image inventory only; keep worker dependencies unchanged.
+Pillow>=10.4,<13
+# CPU perceptual hashing for duplicate grouping (already present in local Anaconda).
+numpy>=1.26,<3
+# Optional, needed only for explicitly requested HF downloads:
+huggingface_hub>=0.24,<2

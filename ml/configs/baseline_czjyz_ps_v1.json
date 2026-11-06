@@ -1,0 +1,21 @@
+{
+  "model": "yolo11n.pt",
+  "ultralytics_version": "8.3.228",
+  "imgsz": 640,
+  "epochs": 25,
+  "batch": "vram",
+  "seed": 20261103,
+  "deterministic": true,
+  "optimizer": "AdamW",
+  "lr0": 0.001,
+  "weight_decay": 0.0005,
+  "workers": 2,
+  "amp": true,
+  "patience": 25,
+  "save_period": 5,
+  "close_mosaic": 5,
+  "cache": false,
+  "error_conf": 0.25,
+  "error_iou": 0.5,
+  "examples_per_kind": 6
+}

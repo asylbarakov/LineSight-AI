@@ -1,0 +1,149 @@
+{
+  "verified_on": "2026-11-07",
+  "branch": "daniil/YOLOtrain_v1",
+  "scope": "Read-only SHA256/ZIP CRC checks; no training, inference or source artifact modification.",
+  "original_run_files_rehashed": 73,
+  "all_original_run_hashes_match": true,
+  "training_zip_crc": "passed",
+  "all_seven_weights_match_zip_members": true,
+  "working_code_matches_training_bundle": {
+    "prepare_yolo.py": true,
+    "download_dataset.py": true,
+    "check_env.py": true,
+    "voc_dataset.py": true,
+    "train.py": true,
+    "requirements-colab.txt": true,
+    "baseline_czjyz_ps_v1.json": true,
+    "plan.json": true
+  },
+  "artifacts": [
+    {
+      "path": "ml/runs/baseline640_v1/training/weights/best.pt",
+      "bytes": 5463770,
+      "sha256": "d84b616a179ef204957f2607b288c220b37d8ff5df1b4ee0837e575d87cd04ec"
+    },
+    {
+      "path": "ml/runs/baseline640_v1/training/weights/epoch0.pt",
+      "bytes": 16071649,
+      "sha256": "b6c25ad7338b272b5c5d3b3cf5b537fbcb3968e781fb2dee996e5af8cde781aa"
+    },
+    {
+      "path": "ml/runs/baseline640_v1/training/weights/epoch10.pt",
+      "bytes": 16072673,
+      "sha256": "5c9f02c78e3260f53d7628890e48204eba0b2f4437dfd042a1ea4cf80706e386"
+    },
+    {
+      "path": "ml/runs/baseline640_v1/training/weights/epoch15.pt",
+      "bytes": 16073313,
+      "sha256": "41d5995d2f51e0b6578d1b422e8738b2f519f1efcabd88ca41990ba3f32edad9"
+    },
+    {
+      "path": "ml/runs/baseline640_v1/training/weights/epoch20.pt",
+      "bytes": 16073953,
+      "sha256": "3f81bc884c8756ecf7595b943bd0608480aadd7052746a8d27232dff38dbd722"
+    },
+    {
+      "path": "ml/runs/baseline640_v1/training/weights/epoch5.pt",
+      "bytes": 16072033,
+      "sha256": "2ed3637c475a0f704ae8337038222f52339a3cbbfa9ccaa4b80f1f6a29317c1a"
+    },
+    {
+      "path": "ml/runs/baseline640_v1/training/weights/last.pt",
+      "bytes": 5463770,
+      "sha256": "ea5a8d83d3450f6e8eb9354fa924ea0a0a61ff4c0d94dcad8558146f3c9c6fc0"
+    },
+    {
+      "path": "ml/data/transmission line object detection.zip",
+      "bytes": 529819566,
+      "sha256": "4dfb88386d7f460347be6c86241cbd16af322dc47a3ad0099c3e90f2c41bb8a3"
+    },
+    {
+      "path": "ml/data/yolo-czjyz-ps-v1/manifest.json",
+      "bytes": 4392382,
+      "sha256": "e1034b67c2275b9cc376ab66076e8c26f6eb7e53ed56709c3ac1b1b6ef9edcab"
+    },
+    {
+      "path": "ml/runs/czjyz-ps-audit-v1/dataset_plan.json",
+      "bytes": 4392326,
+      "sha256": "ed3bf16b45c58cb7d862e7e485d51d7988e1c04a6f65d36897282179984f71ba"
+    },
+    {
+      "path": "ml/runs/czjyz-ps-audit-v1/colab_baseline_v1_bundle.zip",
+      "bytes": 395194,
+      "sha256": "44ad697cf694b0b8cfc959b2e1a3ab751b169b8f9e7b9033b7c7908a4eecd5b2"
+    },
+    {
+      "path": "ml/runs/czjyz-ps-audit-v1/colab_dataset_v1_bundle.zip",
+      "bytes": 388738,
+      "sha256": "b1415dc7d026653cbeb968649ee5456f477557c44cfe0940149e0529ab0001d4"
+    },
+    {
+      "path": "ml/runs/baseline640_v1/validation_metrics.json",
+      "bytes": 213,
+      "sha256": "e32a939cf40fe3860f6f252d636706d0306bc490aab57c301a22da1054426e70"
+    },
+    {
+      "path": "ml/runs/baseline640_v1/analysis.md",
+      "bytes": 31019,
+      "sha256": "0b4dbb604523fdcf717c885009479264255b0a6c6b0271e78bae1cee291d1328"
+    },
+    {
+      "path": "C:/Users/danii/Downloads/baseline640_v1.zip",
+      "bytes": 79143745,
+      "sha256": "7c0484228d4393ed23409062dc9513653118aa26a86f361352ab755513f91dd6"
+    }
+  ],
+  "dataset_validation": {
+    "status": "passed",
+    "images": {
+      "train": 3109,
+      "val": 389,
+      "test": 389
+    },
+    "objects": {
+      "train": 3259,
+      "val": 405,
+      "test": 412
+    },
+    "cross_split_group_or_exact_hash_overlap": 0
+  },
+  "locations": {
+    "dataset": "ml/data/yolo-czjyz-ps-v1/",
+    "source_data": "ml/data/transmission-v1/",
+    "results": "ml/runs/baseline640_v1/",
+    "frozen_export_plan": "ml/runs/czjyz-ps-audit-v1/dataset_plan.json"
+  },
+  "backup": {
+    "local_training_zip_verified": true,
+    "local_zip_and_extracted_results_same_drive": "C:",
+    "independent_backup_verified": false,
+    "google_drive_copy_verified": false,
+    "note": "Drive export is described in the notebook, but remote Drive contents were not accessible/verified. No independent backup is claimed."
+  },
+  "git_index_source_sha256": {
+    "ml/prepare_yolo.py": "61b515ea4ab2821e19ade0d1888adefe115ea58aab09d6d21b6bd3d9f274c430",
+    "ml/download_dataset.py": "915575c5166c73eb06c1a2e3dd5f50b9d823682a01cb4ac87b18ed476a711a32",
+    "ml/check_env.py": "274be307594264abf6ffd046597b68992e674939a69f8de737658ebdd241def4",
+    "ml/voc_dataset.py": "0b45f59aa78d7526973ad03531802d366effd647ec5a0818a7676a86663a91bc",
+    "ml/train.py": "4eb698f8867004883cef01e1e5a5c51b318a5f08f0dd55c879000d780a0ae56a",
+    "ml/requirements-colab.txt": "bb275ea6db8458c547aab950fb5a8f0c1fc0fadb36af61b66def67007f8abd8d",
+    "ml/configs/baseline_czjyz_ps_v1.json": "dbfc8a2997a54124be3d61ea3904b7cc6722765f2f338602b507c939c846074f"
+  },
+  "git_line_ending_normalization": {
+    "ml/train.py": {
+      "working_file_sha256": "68eaa31eaa2f53afcc4756960bacbe9f74ed54d6a37ffe51ad1fe494cef86db7",
+      "git_blob_sha256": "4eb698f8867004883cef01e1e5a5c51b318a5f08f0dd55c879000d780a0ae56a",
+      "reason": "Existing Git settings normalize CRLF to LF; content is identical after newline normalization. Original bundle and working file were not modified."
+    }
+  },
+  "checks": {
+    "baseline_cpu_tests_passed": 43,
+    "all_ml_tests": "Collection blocked by missing psycopg for existing worker tests; no dependency installation.",
+    "dataset_validation": "passed",
+    "training_preflight": "passed",
+    "notebook_schema_and_python_syntax": "passed",
+    "secret_pattern_scan_files": 19,
+    "secret_pattern_findings": 0,
+    "large_artifacts_staged": false
+  }
+}
