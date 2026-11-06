@@ -3,7 +3,7 @@ import type { ErrorCode, FindingStatus, InspectionStatus, Priority } from "./typ
 export const STATUS_RU: Record<InspectionStatus, string> = {
   queued: "В очереди",
   processing: "Обрабатывается",
-  done: "Готово",
+  done: "Обработано",
   failed: "Ошибка",
 };
 

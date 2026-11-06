@@ -1,21 +1,36 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { logout, USE_MOCKS } from "@/lib/api";
 import { getToken } from "@/lib/auth";
-
-const NAV = [
-  { href: "/inspections", label: "Инспекции" },
-  { href: "/metrics", label: "Метрики" },
-  { href: "/preview", label: "Макеты" },
-];
+import { Header } from "./Header";
+import { Sidebar } from "./Sidebar";
 
 export function Shell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [ready, setReady] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+  const mobileNav = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    try { setCollapsed(localStorage.getItem("ls_sidebar_collapsed") === "true"); } catch { /* session-only layout */ }
+  }, []);
+  function toggleSidebar() {
+    const next = !collapsed;
+    setCollapsed(next);
+    try { localStorage.setItem("ls_sidebar_collapsed", String(next)); } catch { /* session-only layout */ }
+  }
+  useEffect(() => {
+    if (!menuOpen) return;
+    const trigger = document.activeElement as HTMLElement | null;
+    mobileNav.current?.querySelector<HTMLAnchorElement>("a")?.focus();
+    const close = (event: KeyboardEvent) => { if (event.key === "Escape") { setMenuOpen(false); trigger?.focus(); } };
+    document.addEventListener("keydown", close);
+    return () => document.removeEventListener("keydown", close);
+  }, [menuOpen]);
+  useEffect(() => setMenuOpen(false), [pathname]);
 
   // защита страниц: без токена — на /login
   useEffect(() => {
@@ -32,37 +47,13 @@ export function Shell({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen">
-      <header className="sticky top-0 z-40 border-b border-line bg-bg/90 backdrop-blur">
-        <div className="mx-auto flex h-14 max-w-7xl items-center gap-8 px-6">
-          <Link href="/inspections" className="flex items-center gap-2 text-base font-semibold tracking-tight">
-            <span className="inline-block h-2.5 w-2.5 rounded-sm bg-accent" />
-            LineSight AI
-          </Link>
-          <nav className="flex gap-1">
-            {NAV.map((n) => {
-              const active = pathname === n.href || pathname.startsWith(n.href + "/");
-              return (
-                <Link
-                  key={n.href}
-                  href={n.href}
-                  className={`rounded-md px-3 py-1.5 text-sm transition-colors ${
-                    active ? "bg-surface2 text-fg" : "text-muted hover:text-fg"
-                  }`}
-                >
-                  {n.label}
-                </Link>
-              );
-            })}
-          </nav>
-          <div className="ml-auto">
-            <button onClick={onLogout} className="rounded-md px-3 py-1.5 text-sm text-muted hover:text-fg">
-              Выйти
-            </button>
-          </div>
-        </div>
-      </header>
-      <main className="mx-auto max-w-7xl px-6 py-8">{ready ? children : null}</main>
+    <div className="app-shell min-h-screen" data-nav-collapsed={collapsed}>
+      <a href="#main-content" className="sr-only z-50 rounded-lg bg-surface p-3 text-sm text-accent focus:not-sr-only focus:fixed focus:left-4 focus:top-4">К содержимому</a>
+      <Sidebar pathname={pathname} collapsed={collapsed} onCollapse={toggleSidebar} />
+      <Header pathname={pathname} menuOpen={menuOpen} onToggleMenu={() => setMenuOpen((open) => !open)} onLogout={onLogout} />
+      <div ref={mobileNav} id="mobile-navigation" hidden={!menuOpen}><Sidebar pathname={pathname} mobile onNavigate={() => setMenuOpen(false)} /></div>
+      {USE_MOCKS && <p role="status" className="border-b border-warn/30 bg-warn-soft px-5 py-2 text-xs text-warn">Демонстрационный режим · Все данные на этой странице являются примерами.</p>}
+      <main id="main-content" className="mx-auto max-w-[1760px] px-4 py-5 md:px-6 md:py-6">{ready ? children : null}</main>
     </div>
   );
 }

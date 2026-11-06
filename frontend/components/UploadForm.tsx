@@ -38,6 +38,7 @@ export function UploadForm({ onUploaded }: { onUploaded: (id: string) => void })
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!file) return;
+    setError(null);
     setProgress(0);
     try {
       const r = await uploadInspection(file, title.trim(), setProgress);
@@ -54,9 +55,10 @@ export function UploadForm({ onUploaded }: { onUploaded: (id: string) => void })
   const uploading = progress !== null;
   return (
     <form onSubmit={submit} className="rounded-xl border border-line bg-surface p-5">
-      <h2 className="text-sm font-semibold">Новая инспекция</h2>
+      <h2 className="section-title">Новая инспекция</h2>
+      <p className="mt-1 max-w-prose text-base text-muted">MP4 до {MAX_UPLOAD_MB} МБ. Одна загрузка создаёт одну видеоинспекцию.</p>
       <div className="mt-4 grid gap-4 md:grid-cols-[1fr_1fr_auto] md:items-end">
-        <label className="block text-sm">
+        <label className="block text-label">
           <span className="mb-1 block text-muted">Видео (MP4)</span>
           <input
             ref={input}
@@ -67,27 +69,27 @@ export function UploadForm({ onUploaded }: { onUploaded: (id: string) => void })
             className="block w-full text-sm text-muted file:mr-3 file:rounded-md file:border-0 file:bg-surface2 file:px-3 file:py-2 file:text-sm file:text-fg"
           />
         </label>
-        <label className="block text-sm">
+        <label className="block text-label">
           <span className="mb-1 block text-muted">Название</span>
           <input
             value={title}
             disabled={uploading}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Облёт участка 1"
-            className="w-full rounded-md border border-line bg-bg px-3 py-2 text-sm outline-none focus:border-accent"
+            className="min-h-11 w-full rounded-md border border-control bg-field px-3 py-2 text-sm outline-none focus:border-accent"
           />
         </label>
         <button
           type="submit"
           disabled={!file || uploading}
-          className="rounded-md bg-accent px-5 py-2 text-sm font-medium text-black transition-opacity disabled:opacity-40"
+          className="btn-primary px-5"
         >
           {uploading ? "Загрузка…" : "Загрузить"}
         </button>
       </div>
       {uploading && (
         <div className="mt-4" aria-label="Прогресс загрузки">
-          <div className="h-2 overflow-hidden rounded-full bg-surface2">
+          <div role="progressbar" aria-label="Загрузка MP4" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round((progress ?? 0) * 100)} className="h-2 overflow-hidden rounded-full bg-surface2">
             <div className="h-full bg-accent transition-all" style={{ width: `${Math.round((progress ?? 0) * 100)}%` }} />
           </div>
           <p className="mt-1 text-xs text-muted">{Math.round((progress ?? 0) * 100)}%</p>

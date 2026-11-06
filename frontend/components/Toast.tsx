@@ -18,12 +18,12 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <Ctx.Provider value={push}>
       {children}
-      <div className="fixed bottom-4 right-4 z-50 flex w-80 flex-col gap-2" role="status" aria-live="polite">
+      <div className="fixed bottom-4 right-4 z-50 flex w-80 max-w-[calc(100vw-2rem)] flex-col gap-2" role="status" aria-live="polite">
         {items.map((t) => (
           <div
             key={t.id}
             className={`rounded-lg border px-4 py-3 text-sm shadow-lg ${
-              t.kind === "error" ? "border-danger/50 bg-danger/10 text-danger" : "border-ok/50 bg-ok/10 text-ok"
+              t.kind === "error" ? "border-danger/50 bg-danger-soft text-danger" : "border-ok/50 bg-ok-soft text-ok"
             }`}
           >
             {t.text}

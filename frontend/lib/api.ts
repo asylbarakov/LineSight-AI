@@ -19,33 +19,47 @@ function redirectToLogin(): void {
   }
 }
 
-async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const headers = new Headers(init.headers);
-  const token = getToken();
-  if (token) headers.set("Authorization", `Bearer ${token}`);
-  let res: Response;
+/** Transport concern only: keep stalled requests out of permanent UI loading states. */
+async function withRequestDeadline<T>(milliseconds: number, run: (signal: AbortSignal) => Promise<T>): Promise<T> {
+  const controller = new AbortController();
+  const deadline = setTimeout(() => controller.abort(), milliseconds);
   try {
-    res = await fetch(`${BASE}${path}`, { ...init, headers, credentials: "include" });
-  } catch {
-    throw new ApiError(0, "Нет связи с сервером");
+    return await run(controller.signal);
+  } catch (error) {
+    if (controller.signal.aborted) throw new ApiError(0, "Сервер не ответил вовремя. Повторите попытку.");
+    throw error;
+  } finally {
+    clearTimeout(deadline);
   }
-  if (res.status === 401 && !path.endsWith("/login")) {
-    redirectToLogin();
-    throw new ApiError(401, "Требуется вход");
-  }
-  if (!res.ok) {
-    let detail = `Ошибка ${res.status}`;
-    let code: string | undefined;
+}
+
+async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
+  return withRequestDeadline(30_000, async signal => {
+    const headers = new Headers(init.headers);
+    const token = getToken();
+    if (token) headers.set("Authorization", `Bearer ${token}`);
+    let res: Response;
     try {
-      const body = await res.json();
-      if (body?.detail) detail = typeof body.detail === "string" ? body.detail : JSON.stringify(body.detail);
-      code = body?.error_code;
+      res = await fetch(`${BASE}${path}`, { ...init, headers, credentials: "include", signal });
     } catch {
-      /* тело не JSON */
+      throw new ApiError(0, "Нет связи с сервером");
     }
-    throw new ApiError(res.status, detail, code);
-  }
-  return (await res.json()) as T;
+    if (res.status === 401 && !path.endsWith("/login")) {
+      redirectToLogin();
+      throw new ApiError(401, "Требуется вход");
+    }
+    if (!res.ok) {
+      let detail = `Ошибка ${res.status}`;
+      let code: string | undefined;
+      try {
+        const body = await res.json();
+        if (body?.detail) detail = typeof body.detail === "string" ? body.detail : JSON.stringify(body.detail);
+        code = body?.error_code;
+      } catch { /* response is not JSON */ }
+      throw new ApiError(res.status, detail, code);
+    }
+    return (await res.json()) as T;
+  });
 }
 
 const delay = <T,>(v: T, ms = 150) => new Promise<T>((r) => setTimeout(() => r(v), ms));
@@ -147,21 +161,23 @@ export async function downloadReport(id: string, title: string): Promise<void> {
   const headers = new Headers();
   const token = getToken();
   if (token) headers.set("Authorization", `Bearer ${token}`);
-  const res = await fetch(`${BASE}/api/inspections/${id}/report.pdf`, { headers, credentials: "include" });
-  if (res.status === 401) {
-    redirectToLogin();
-    throw new ApiError(401, "Требуется вход");
-  }
-  if (!res.ok) {
-    let detail = "Отчёт недоступен";
-    try {
-      detail = (await res.json()).detail ?? detail;
-    } catch {
-      /* не JSON */
+  const blob = await withRequestDeadline(90_000, async signal => {
+    const res = await fetch(`${BASE}/api/inspections/${id}/report.pdf`, { headers, credentials: "include", signal });
+    if (res.status === 401) {
+      redirectToLogin();
+      throw new ApiError(401, "Требуется вход");
     }
-    throw new ApiError(res.status, detail);
-  }
-  const blob = await res.blob();
+    if (!res.ok) {
+      let detail = "Отчёт недоступен";
+      try {
+        detail = (await res.json()).detail ?? detail;
+      } catch {
+        /* не JSON */
+      }
+      throw new ApiError(res.status, detail);
+    }
+    return await res.blob();
+  });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;

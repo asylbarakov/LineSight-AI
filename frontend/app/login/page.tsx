@@ -3,6 +3,9 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ApiError, login } from "@/lib/api";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { LineScan } from "@/components/auth/LineScan";
+import styles from "./login.module.css";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -21,7 +24,7 @@ export default function LoginPage() {
     setError(null);
     try {
       await login(user.trim(), password);
-      router.replace("/inspections");
+      router.replace("/dashboard");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Не удалось войти");
       setBusy(false);
@@ -29,42 +32,56 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4">
-      <form onSubmit={submit} className="w-full max-w-sm rounded-2xl border border-line bg-surface p-8 shadow-xl">
-        <div className="mb-6 flex items-center gap-2 text-lg font-semibold">
-          <span className="inline-block h-3 w-3 rounded-sm bg-accent" />
-          LineSight AI
-        </div>
-        <p className="mb-6 text-sm text-muted">Вход для администратора</p>
-        <label className="mb-4 block text-sm">
-          <span className="mb-1 block text-muted">Логин</span>
-          <input
-            autoFocus
-            autoComplete="username"
-            value={user}
-            onChange={(e) => setUser(e.target.value)}
-            className="w-full rounded-md border border-line bg-bg px-3 py-2 outline-none focus:border-accent"
-          />
-        </label>
-        <label className="mb-4 block text-sm">
-          <span className="mb-1 block text-muted">Пароль</span>
-          <input
-            type="password"
-            autoComplete="current-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full rounded-md border border-line bg-bg px-3 py-2 outline-none focus:border-accent"
-          />
-        </label>
-        {error && <p className="mb-4 text-sm text-danger" role="alert">{error}</p>}
-        <button
-          type="submit"
-          disabled={busy}
-          className="w-full rounded-md bg-accent px-4 py-2 text-sm font-medium text-black disabled:opacity-50"
-        >
-          {busy ? "Вход…" : "Войти"}
-        </button>
-      </form>
+    <div className={styles.page}>
+      <header className={styles.header}>
+        <div className={styles.brand}><span className={styles.brandMark} aria-hidden="true" />LineSight AI</div>
+        <ThemeToggle />
+      </header>
+      <main className={styles.main}>
+        <section className={styles.formSide} aria-labelledby="login-title">
+          <form onSubmit={submit} className={styles.form} aria-busy={busy} aria-describedby="login-description">
+            <div className={styles.formHeading}>
+              <h1 id="login-title" className="page-title">Вход в систему</h1>
+              <p id="login-description" className={styles.description}>Видеоинспекции линий электропередачи.<br className={styles.desktopBreak} /> Анализ находок и решения инженера.</p>
+            </div>
+            <label className={styles.field} htmlFor="login-username">
+              <span>Логин</span>
+              <input
+                id="login-username"
+                name="username"
+                autoFocus
+                autoComplete="username"
+                autoCapitalize="none"
+                spellCheck={false}
+                aria-required="true"
+                aria-describedby={error ? "login-error" : undefined}
+                value={user}
+                onChange={(e) => setUser(e.target.value)}
+                className={styles.input}
+              />
+            </label>
+            <label className={styles.field} htmlFor="login-password">
+              <span>Пароль</span>
+              <input
+                id="login-password"
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                aria-required="true"
+                aria-describedby={error ? "login-error" : undefined}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className={styles.input}
+              />
+            </label>
+            {error && <p id="login-error" className={styles.error} role="alert">{error}</p>}
+            <button type="submit" disabled={busy} className={`btn-primary ${styles.submit}`}>
+              {busy ? "Вход…" : "Войти"}
+            </button>
+          </form>
+        </section>
+        <LineScan />
+      </main>
     </div>
   );
 }

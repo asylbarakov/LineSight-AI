@@ -22,15 +22,16 @@ export default function PreviewPage() {
         <h1 className="text-2xl font-semibold tracking-tight">Направления развития</h1>
         <MockBadge />
       </div>
-      <p className="max-w-2xl text-sm text-muted">
+      <p className="max-w-2xl text-base text-muted">
         Эти экраны показывают, куда может развиваться система. Данные на них вымышленные и не относятся к реальным инспекциям.
       </p>
-      <div className="flex gap-1 border-b border-line">
+      <div className="flex gap-1 overflow-x-auto overflow-y-hidden border-b border-line">
         {TABS.map((t) => (
           <button
             key={t}
+            aria-pressed={tab === t}
             onClick={() => setTab(t)}
-            className={`-mb-px border-b-2 px-4 py-2 text-sm ${
+            className={`min-h-11 -mb-px whitespace-nowrap border-b-2 px-4 py-2 text-sm ${
               tab === t ? "border-accent text-fg" : "border-transparent text-muted hover:text-fg"
             }`}
           >
@@ -43,7 +44,7 @@ export default function PreviewPage() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {KPI.map(([k, v]) => (
             <div key={k} className="rounded-xl border border-line bg-surface p-5">
-              <div className="text-xs uppercase tracking-wide text-muted">{k}</div>
+              <div className="text-sm text-muted">{k}</div>
               <div className="mt-2 text-3xl font-semibold">{v}</div>
             </div>
           ))}
@@ -58,13 +59,13 @@ export default function PreviewPage() {
             {[[90, 192], [180, 168], [280, 138], [380, 112], [480, 94], [570, 58]].map(([x, y], i) => (
               <g key={i}>
                 <circle cx={x} cy={y} r="6" fill="var(--bg)" stroke="var(--fg)" strokeWidth="2" />
-                <text x={x - 6} y={y + 22} fontSize="11" fill="var(--muted)">{`Оп. ${i + 1}`}</text>
+                <text x={x - 6} y={y + 22} fontSize="14" fill="var(--muted)">{`Оп. ${i + 1}`}</text>
               </g>
             ))}
             <circle cx="280" cy="138" r="12" fill="none" stroke="var(--danger)" strokeWidth="2" />
             <circle cx="480" cy="94" r="12" fill="none" stroke="var(--warn)" strokeWidth="2" />
           </svg>
-          <p className="mt-3 text-sm text-muted">Привязка находок к GPS-трекам дрона — после приёмки.</p>
+          <p className="mt-3 text-base text-muted">Привязка находок к GPS-трекам дрона — после приёмки.</p>
         </div>
       )}
 
@@ -74,16 +75,16 @@ export default function PreviewPage() {
             <div key={t} className="rounded-xl border border-line bg-surface p-5">
               <div className="mb-3 text-sm font-medium">{t}</div>
               <div className="flex aspect-video items-center justify-center rounded-lg bg-surface2 text-xs text-muted">кадр опоры №3</div>
-              <p className="mt-3 text-sm text-muted">{i === 0 ? "Изолятор без видимых повреждений" : "Новая трещина на изоляторе"}</p>
+              <p className="mt-3 text-base text-muted">{i === 0 ? "Изолятор без видимых повреждений" : "Новая трещина на изоляторе"}</p>
             </div>
           ))}
         </div>
       )}
 
       {tab === "Model Lab" && (
-        <div className="overflow-hidden rounded-xl border border-line bg-surface">
-          <table className="w-full text-sm">
-            <thead className="border-b border-line text-left text-xs uppercase tracking-wide text-muted">
+        <div className="overflow-x-auto rounded-xl border border-line bg-surface">
+          <table className="w-full text-base">
+            <thead className="border-b border-line text-left text-sm text-muted">
               <tr><th className="px-5 py-3 font-medium">Модель</th><th className="px-5 py-3 text-right font-medium">mAP50</th><th className="px-5 py-3 text-right font-medium">FPS</th></tr>
             </thead>
             <tbody>

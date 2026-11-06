@@ -1,0 +1,40 @@
+.scene { --scan-accent: #aab8ef; --scan-loop: 10s; grid-column: 1; grid-row: 1; display: flex; flex-direction: column; justify-content: space-between; min-width: 0; overflow: hidden; padding: 36px clamp(24px, 3.5vw, 56px) 44px; background: #121214; color: #eeeef2; border-right: 1px solid #2f2f35; }
+.sceneHeader { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.sceneLabel { font-size: 15px; line-height: 22px; color: #eeeef2; }
+.sceneMeta { margin-top: 3px; font-size: 14px; line-height: 20px; color: #a7a7b4; }
+.motionControl { display: grid; place-items: center; width: 44px; height: 44px; flex: 0 0 auto; border: 1px solid #2f2f35; border-radius: 6px; color: #a7a7b4; }
+.motionControl:hover { background: #1e1e22; color: #eeeef2; }
+.motionControl:focus-visible { outline-color: var(--scan-accent); }
+.drawing { margin: 12px -24px; }
+.schematic { display: block; width: 100%; max-width: 720px; margin: auto; overflow: visible; stroke-linecap: round; stroke-linejoin: round; }
+.ground { stroke: #45454f; stroke-width: 1; opacity: .6; }
+.wires { stroke: #71717f; stroke-width: 1; opacity: .65; }
+.towers { stroke: #9797a8; stroke-width: 1.2; }
+.insulators { stroke: #b3b3c0; stroke-width: 2.5; }
+.scanPulse, .scanHalo { stroke: var(--scan-accent); stroke-dasharray: 36 964; animation: line-scan-travel var(--scan-loop) linear infinite; }
+.scanPulse { stroke-width: 2; opacity: .8; }
+.scanHalo { stroke-width: 9; opacity: .09; }
+.detection { stroke: var(--scan-accent); stroke-width: 1.25; opacity: 0; }
+.detection circle { fill: var(--scan-accent); stroke: none; }
+.firstDetection { animation: line-scan-first var(--scan-loop) ease-in-out infinite; }
+.secondDetection { animation: line-scan-second var(--scan-loop) ease-in-out infinite; }
+.scene[data-paused="true"] .scanPulse, .scene[data-paused="true"] .scanHalo,
+.scene[data-paused="true"] .detection { animation-play-state: paused; }
+.sceneCaption h2 { font-size: 20px; line-height: 28px; font-weight: 500; }
+.sceneCaption p { margin-top: 8px; font-size: 15px; line-height: 22px; color: #a7a7b4; }
+@keyframes line-scan-travel { from { stroke-dashoffset: 1000; } to { stroke-dashoffset: 0; } }
+@keyframes line-scan-first { 0%, 20%, 57%, 100% { opacity: 0; } 28%, 43% { opacity: .85; } }
+@keyframes line-scan-second { 0%, 57%, 91%, 100% { opacity: 0; } 65%, 78% { opacity: .85; } }
+@media (max-width: 959px) {
+  .scene { border-right: 0; border-top: 1px solid #2f2f35; padding: 24px; min-height: 220px; position: relative; }
+  .drawing { position: absolute; width: 340px; right: 24px; top: -10px; margin: 0; opacity: .65; }
+  .sceneHeader, .sceneCaption { position: relative; z-index: 1; max-width: 48%; }
+  .sceneHeader { max-width: none; }
+}
+@media (max-width: 639px) { .scene { display: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .scanPulse, .scanHalo, .detection { animation: none; }
+  .scanPulse, .scanHalo { display: none; }
+  .detection { opacity: .55; }
+  .motionControl { display: none; }
+}
