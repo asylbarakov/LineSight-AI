@@ -1,58 +1,98 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type PointerEvent } from "react";
+import { cablePaths, lineScanOffset, smoothScanOffset, type ScanOffset } from "@/lib/lineScan";
 import styles from "./LineScan.module.css";
 
-// A decorative schematic only. No inspection data, model results or API state.
-const SCAN_PATH = "M-20 142 Q28 180 81.6 153.2 Q184 257 303.2 118.9 Q441 243 562.4 153.3 Q617 192 660 176";
-
-function Tower({ x, y, scale = 1 }: { x: number; y: number; scale?: number }) {
+function Tower({ x, y, scale }: {x: number; y: number; scale: number}) {
   return <g transform={`translate(${x} ${y}) scale(${scale})`}>
-    <path d="M0 0 -13 46 -17 94 -37 250 M0 0 13 46 17 94 37 250 M-37 250H37 M-13 46H13 M-17 94H17 M-27 170H27 M-9 22H9 M-28 38H28 M-42 60H42 M-56 88H56 M-28 38 -12 28 M28 38 12 28 M-42 60 -14 48 M42 60 14 48 M-56 88 -17 72 M56 88 17 72 M-17 94 27 170 -37 250 M17 94 -27 170 37 250 M-13 46 17 94 M13 46 -17 94" />
-    <g className={styles.insulators}><path d="M-28 38v11 M28 38v11 M-42 60v12 M42 60v12 M-56 88v13 M56 88v13" /></g>
-    <path d="M-47 253H47" />
+    <g className={styles.rearSteel} transform="translate(11 -3)"><path d="M0 0 -12 100 -22 190 -37 300 -55 390 -78 500 M0 0 12 100 22 190 40 300 60 400 80 516 M-78 500 60 400 -37 300 22 190 -12 100 0 0 M80 516 -55 390 40 300 -22 190 12 100" /></g>
+    <path d="M0 0 -12 100 -22 190 -37 300 -55 390 -78 500 M0 0 12 100 22 190 40 300 60 400 80 516 M-12 100H12 M-22 190H22 M-37 300H40 M-55 390 60 400 M-78 500 80 516" />
+    <path d="M0 0 12 100 -22 190 40 300 -55 390 80 516 M0 0 -12 100 22 190 -37 300 60 400 -78 500 M-7 60 7 60 M-17 145H17 M-29 240H30 M-46 345 49 350 M-66 445 70 455" />
+    <g className={styles.secondarySteel}><path d="M-12 100 8 60 -7 24 M12 100 -8 60 7 24 M-22 190 17 145 -12 100 M22 190 -17 145 12 100 M-37 300 30 240 -22 190 M40 300 -29 240 22 190 M-55 390 49 350 -37 300 M60 400 -46 345 40 300 M-78 500 70 455 -55 390 M80 516 -66 445 60 400" /></g>
+    <path d="M-90 100H90L12 67 M-90 100 -12 67 M-110 190H110L22 157 M-110 190 -22 157 M-90 104H90 M-110 194H110 M-90 100 -59 88 -29 100 M90 100 59 88 29 100 M-110 190 -77 178 -44 190 M110 190 77 178 44 190" />
+    <g className={styles.insulators}>{[[-90,100],[90,100],[-110,190],[110,190]].map(([a,b]) => <g key={`${a}-${b}`} transform={`translate(${a} ${b})`}><path d="M0 0v26" />{[3,7,11,15,19,23].map(y => <path key={y} d={`M-3 ${y}h6`} />)}</g>)}</g>
+    <path d="M-86 501 -70 502 M73 516 89 518" />
   </g>;
 }
 
+/** Decorative SVG only. Pointer motion is isolated from the stationary form. */
 export function LineScan() {
-  const [paused, setPaused] = useState(false);
-  return <section className={styles.scene} data-paused={paused} aria-labelledby="line-scan-title">
-    <div className={styles.sceneHeader}>
-      <div><p className={styles.sceneLabel}>Сканирование линии</p><p className={styles.sceneMeta}>Иллюстрация видеоинспекции</p></div>
-      <button type="button" className={styles.motionControl} aria-pressed={paused}
-        aria-label={paused ? "Включить анимацию" : "Приостановить анимацию"} onClick={() => setPaused(value => !value)}>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
-          {paused ? <path d="m9 5 10 7-10 7Z" /> : <path d="M9 5v14M15 5v14" />}
-        </svg>
-      </button>
-    </div>
-    <div className={styles.drawing}>
-      <svg className={styles.schematic} viewBox="0 0 640 440" fill="none" aria-hidden="true" focusable="false">
-        <g className={styles.ground}><path d="M24 374H616 M24 369v10 M616 369v10 M276 369v10" /><path d="M51 392H117 M237 392H315 M519 392H581" /></g>
-        <g className={styles.wires}>
-          <path d="M-20 161Q27 196 70.4 171.6Q175 283 287.8 144.2Q426 269 552.6 169.4Q608 209 660 192" />
-          <path d="M-20 184Q23 222 59.2 194.8Q160 313 272.4 176.1Q412 299 542.8 189.7Q602 232 660 216" />
-          <path d="M126.4 153.2Q237 254 364.8 118.9Q487 243 601.6 153.3 M137.6 171.6Q250 281 380.2 144.2Q499 269 611.4 169.4 M148.8 194.8Q267 311 395.6 176.1Q516 299 621.2 189.7" />
-          <path d={SCAN_PATH} />
+  const scene = useRef<HTMLElement>(null);
+  const frame = useRef<number | null>(null);
+  const current = useRef<ScanOffset>({x: 0, y: 0});
+  const target = useRef<ScanOffset>({x: 0, y: 0});
+  const lastFrame = useRef(0);
+  const [enabled, setEnabled] = useState(false);
+  const [offset, setOffset] = useState<ScanOffset>({x: 0, y: 0});
+
+  useEffect(() => {
+    const fine = window.matchMedia("(hover: hover) and (pointer: fine)");
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const sync = () => {
+      setEnabled(fine.matches && !reduce.matches);
+      setOffset({x: 0, y: 0});
+      current.current = target.current = {x: 0, y: 0};
+      if (frame.current !== null) cancelAnimationFrame(frame.current);
+      frame.current = null;
+    };
+    sync(); fine.addEventListener("change", sync); reduce.addEventListener("change", sync);
+    return () => {
+      fine.removeEventListener("change", sync); reduce.removeEventListener("change", sync);
+      if (frame.current !== null) cancelAnimationFrame(frame.current);
+    };
+  }, []);
+
+  function animate(time: number) {
+    current.current = smoothScanOffset(current.current, target.current, Math.min(32, time - lastFrame.current));
+    lastFrame.current = time;
+    const settled = Math.abs(current.current.x - target.current.x) + Math.abs(current.current.y - target.current.y) < .01;
+    if (settled) current.current = {...target.current};
+    setOffset({...current.current});
+    frame.current = settled ? null : requestAnimationFrame(animate);
+  }
+  function start() {
+    if (frame.current === null) { lastFrame.current = performance.now(); frame.current = requestAnimationFrame(animate); }
+  }
+  function reset() {
+    target.current = {x: 0, y: 0};
+    if (enabled) start();
+  }
+  function move(event: PointerEvent<HTMLElement>) {
+    if (!enabled || event.pointerType !== "mouse" || !scene.current) return;
+    target.current = lineScanOffset(event.clientX, event.clientY, scene.current.getBoundingClientRect(), true);
+    start();
+  }
+  const paths = cablePaths(offset);
+  const depth = {"--near-x": `${offset.x}px`, "--near-y": `${offset.y}px`, "--far-x": `${offset.x * .4}px`, "--far-y": `${offset.y * .4}px`, "--terrain-x": `${offset.x * .25}px`, "--terrain-y": `${offset.y * .25}px`} as CSSProperties;
+  return <aside ref={scene} className={styles.scene} style={depth} aria-label="Иллюстрация линии электропередачи"
+    onPointerMove={move} onPointerLeave={reset}>
+    <svg className={styles.schematic} viewBox="0 0 800 900" fill="none" aria-hidden="true" focusable="false">
+      <g className={styles.nightSky}>
+        <path className={styles.moon} transform="translate(590 140)" d="M12 0a12 12 0 1 0 12 16A10 10 0 0 1 12 0Z" />
+        <g className={styles.stars}>
+          <circle cx="158" cy="108" r="1" /><circle cx="365" cy="172" r="1.2" />
+          <circle cx="465" cy="95" r="1" /><circle cx="690" cy="112" r="1.1" />
+          <circle cx="652" cy="262" r=".9" />
         </g>
-        <g className={styles.towers}>
-          <Tower x={104} y={114} scale={0.8} />
-          <Tower x={334} y={65} scale={1.1} />
-          <g opacity="0.65"><Tower x={582} y={119} scale={0.7} /></g>
-        </g>
-        <path className={styles.scanHalo} d={SCAN_PATH} pathLength="1000" />
-        <path className={styles.scanPulse} d={SCAN_PATH} pathLength="1000" />
-        <g className={`${styles.detection} ${styles.firstDetection}`} transform="translate(188.2 196.5)">
-          <path d="M-10-4v-6h6 M4-10h6v6 M10 4v6H4 M-4 10h-6V4" /><circle r="2" />
-        </g>
-        <g className={`${styles.detection} ${styles.secondDetection}`} transform="translate(436.9 189.6)">
-          <path d="M-10-4v-6h6 M4-10h6v6 M10 4v6H4 M-4 10h-6V4" /><circle r="2" />
-        </g>
-      </svg>
-    </div>
-    <div className={styles.sceneCaption}>
-      <h2 id="line-scan-title">Видеоданные. Находки. Решения.</h2>
-      <p>От просмотра линии до отчёта инженера.</p>
-    </div>
-  </section>;
+      </g>
+      <g className={styles.daySky}>
+        <path d="M493 162c-9 0-10-14 0-16 1-17 27-21 34-5 10-6 24 1 23 12 14-3 21 9 11 9Z" />
+        <path className={styles.distantCloud} d="M104 119c-8 0-9-11-1-13 2-13 20-15 26-3 9-4 18 2 17 10 11-2 15 6 7 6Z" />
+      </g>
+      <g className={styles.terrainLayer}>
+        <path className={styles.terrainBack} d="M-2000 630H-40Q30 593 111 616T260 635 430 650 590 625 840 655H2800V5000H-2000Z" />
+        <path className={styles.terrainMiddle} d="M-2000 694H-40Q90 651 220 675T440 675Q585 632 682 614T840 650H2800V5000H-2000Z" />
+      </g>
+      <g className={styles.wires}>{paths.map((d,i) => <path key={i} d={d} />)}</g>
+      <g className={styles.wires}><path d={`M-100 335Q20 387 ${125 + offset.x} ${316 + offset.y}`} /><path d={`M-100 405Q10 454 ${105 + offset.x} ${406 + offset.y}`} /></g>
+      <g className={`${styles.tower} ${styles.farLayer}`}><Tower x={682} y={440} scale={.35} /></g>
+      <g className={`${styles.tower} ${styles.nearLayer}`}>
+        <Tower x={215} y={190} scale={1} />
+        <g className={styles.focusBrackets}><path d="M259 277v-12h16 M321 265h16v12 M337 336v12h-16 M275 348h-16v-12" /></g>
+      </g>
+      <g className={styles.terrainLayer}><path className={styles.terrainFront} d="M-2000 661H-40C70 672 130 674 215 690S360 730 460 744 640 782 840 766H2800V5000H-2000Z" /></g>
+      {paths.map((d,i) => <path key={i} d={d} pathLength="1000" className={`${styles.pulse} ${styles[`pulse${i}`]}`} />)}
+    </svg>
+  </aside>;
 }

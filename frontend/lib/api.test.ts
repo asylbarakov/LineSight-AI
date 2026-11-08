@@ -9,6 +9,23 @@ describe("existing API integration contracts", () => {
     vi.stubGlobal("window", { location, localStorage: { getItem: (key: string) => storage.get(key) ?? null, setItem: (key: string, value: string) => storage.set(key, value), removeItem: (key: string) => storage.delete(key) } });
   });
   afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); vi.restoreAllMocks(); });
+  it("requests fresh KPI aggregates rather than cached responses", async () => {
+    const fetcher = vi.fn().mockResolvedValue(new Response(JSON.stringify({inspections_total: 0, detected_defects_total: 0, confirmed_defects_total: 0})));
+    vi.stubGlobal("fetch", fetcher);
+    expect((await getMetrics()).confirmed_defects_total).toBe(0);
+    expect(fetcher.mock.calls[0][1].cache).toBe("no-store");
+  });
+  it("notifies dashboards only after a review is saved, never after a failed review", async () => {
+    const dispatch = vi.fn();
+    Object.assign(window, {dispatchEvent: dispatch});
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValueOnce(new Response(JSON.stringify({id: "f", status: "confirmed"})))
+      .mockResolvedValueOnce(new Response('{"detail":"failed"}', {status: 500})));
+    await patchFinding("f", "confirmed");
+    expect(dispatch.mock.calls.map(c => c[0].type)).toEqual(["ls_data_revision"]);
+    expect(storage.has("ls_data_revision")).toBe(true);
+    await expect(patchFinding("f", "rejected")).rejects.toMatchObject({status: 500});
+    expect(dispatch).toHaveBeenCalledTimes(1);
+  });
   it("aborts a stalled JSON request and exposes a retryable error instead of loading forever", async () => {
     vi.useFakeTimers();
     let signal: AbortSignal | undefined;

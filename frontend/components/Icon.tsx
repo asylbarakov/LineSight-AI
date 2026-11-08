@@ -1,6 +1,8 @@
 import type { CSSProperties } from "react";
-export type IconName = "overview" | "video" | "metrics" | "sections" | "preview" | "panel" | "menu" | "close" | "high" | "medium" | "low" | "visibility";
+export type IconName = "overview" | "video" | "metrics" | "sections" | "preview" | "panel" | "menu" | "close" | "high" | "medium" | "low" | "visibility" | "sparkles" | "send";
 const paths: Record<IconName, string> = {
+  sparkles: "M12 3l2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5L12 3zM20 2v4M18 4h4",
+  send: "M12 20V4m-6 6 6-6 6 6",
   overview: "M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z",
   video: "M3 5h13v14H3zM16 10l5-4v12l-5-4", metrics: "M4 3v17h17M8 15v-4m5 4V7m5 8V4",
   sections: "M3 4l6 2 6-2 6 2v14l-6-2-6 2-6-2zM9 6v14m6-16v14", preview: "M3 4h18v16H3zM3 9h18M8 9v11",

@@ -263,7 +263,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     # ----- метрики -----
 
     @app.get("/api/metrics", dependencies=[Depends(require_admin)])
-    def get_metrics(session: Session = Depends(get_session)):
+    def get_metrics(response: Response, session: Session = Depends(get_session)):
+        response.headers["Cache-Control"] = "no-store"
         return repo.metrics(session)
 
     return app

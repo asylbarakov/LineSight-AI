@@ -16,6 +16,7 @@ export function KeyFrame({ src, bbox, alt, className = "" }: Props) {
   const [zoom, setZoom] = useState(false);
   const [broken, setBroken] = useState(false);
   const closeButton = useRef<HTMLButtonElement>(null);
+  const frameViewport = useRef<HTMLDivElement>(null);
   useEffect(() => { setBroken(false); setZoom(false); }, [src]);
 
   useEffect(() => {
@@ -26,7 +27,11 @@ export function KeyFrame({ src, bbox, alt, className = "" }: Props) {
     closeButton.current?.focus();
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") setZoom(false);
-      if (event.key === "Tab") { event.preventDefault(); closeButton.current?.focus(); }
+      if (event.key === "Tab") {
+        const first = closeButton.current, last = frameViewport.current;
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+      }
     };
     document.addEventListener("keydown", onKeyDown);
     return () => {
@@ -72,11 +77,11 @@ export function KeyFrame({ src, bbox, alt, className = "" }: Props) {
           aria-modal="true"
           aria-label={alt}
         >
-          <div className="max-h-[calc(100svh-3rem)] w-full max-w-5xl overflow-auto rounded-xl border border-line bg-surface p-3 shadow-xl">
-            <div className="mb-3 flex items-center justify-between gap-3"><p className="text-sm font-medium text-fg">{alt}</p>
+          <div className="flex max-h-[calc(100svh-3rem)] w-full max-w-5xl cursor-default flex-col overflow-hidden rounded-xl border border-line bg-surface shadow-xl">
+            <div className="flex shrink-0 items-center justify-between gap-3 border-b border-line px-3 py-2"><p className="min-w-0 break-words text-sm font-medium text-fg">{alt}</p>
               <button ref={closeButton} type="button" onClick={() => setZoom(false)}
                 className="btn">Закрыть</button></div>
-            {frame}
+            <div ref={frameViewport} className="min-h-0 overflow-auto overscroll-contain p-3" tabIndex={0} role="region" aria-label="Увеличенный ключевой кадр">{frame}</div>
           </div>
         </div>
       )}

@@ -12,6 +12,7 @@ import { errorText } from "@/lib/texts";
 import { replaceFinding, rollbackFinding } from "@/lib/review";
 import { scrollToElement } from "@/lib/motion";
 import { Icon } from "@/components/Icon";
+import { AssistantPanel } from "@/components/assistant/AssistantPanel";
 import type { Decision, Finding, FindingStatus, InspectionDetail } from "@/lib/types";
 
 type Filter = "all" | FindingStatus;
@@ -55,6 +56,10 @@ function InspectionDetails({ id }: { id: string }) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [revealCard, setRevealCard] = useState(false);
   const [panelOpen, setPanelOpen] = useState(true);
+  const [workspaceTab, setWorkspaceTab] = useState<"findings" | "assistant">("findings");
+  const [videoTime, setVideoTime] = useState<number | null>(null);
+  const panelToggle = useRef<HTMLButtonElement>(null);
+  const tabButtons = useRef<(HTMLButtonElement | null)[]>([]);
   const [busyIds, setBusyIds] = useState(new Set<string>());
   const [decisionErrors, setDecisionErrors] = useState<Record<string, { message: string; next: Decision }>>({});
   const [reportBusy, setReportBusy] = useState(false);
@@ -117,6 +122,7 @@ function InspectionDetails({ id }: { id: string }) {
     setSelectedId(finding.id);
     player.current?.seekTo(finding.timecode_sec);
     if (fromTimeline) {
+      setWorkspaceTab("findings");
       setPanelOpen(true);
       if (filter !== "all" && filter !== finding.status) setFilter("all");
       // Keep the timeline/group chooser in view on stacked mobile layouts.
@@ -181,7 +187,7 @@ function InspectionDetails({ id }: { id: string }) {
       </div>}
   </div>;
 
-  return <div className="space-y-5">
+  return <div className="mx-auto max-w-[1480px] space-y-4">
     <header className="space-y-3">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0 space-y-2"><div className="flex flex-wrap items-center gap-3">
@@ -191,9 +197,9 @@ function InspectionDetails({ id }: { id: string }) {
         <button type="button" onClick={report} disabled={insp.status !== "done" || reportBusy || busyIds.size > 0}
           className="btn">
           {reportBusy ? "Готовим отчёт…" : "Скачать PDF-отчёт"}</button>
-        <button type="button" className="btn" aria-label={panelOpen ? "Скрыть находки" : `Показать находки${total !== undefined ? ` · ${total}` : ""}`}
-          title={panelOpen ? "Скрыть находки" : "Показать находки"} aria-expanded={panelOpen} aria-controls="findings-panel" onClick={() => setPanelOpen(open => !open)}>
-          <Icon name="panel" /><span className="hidden sm:inline">{panelOpen ? "Скрыть находки" : `Находки${total !== undefined ? ` · ${total}` : ""}`}</span></button>
+        <button ref={panelToggle} type="button" className="btn" aria-label={panelOpen ? "Скрыть панель проверки" : "Показать панель проверки"}
+          title={panelOpen ? "Скрыть панель проверки" : "Показать панель проверки"} aria-expanded={panelOpen} aria-controls="findings-panel" onClick={() => setPanelOpen(open => !open)}>
+          <Icon name="panel" /><span className="hidden sm:inline">{panelOpen ? "Скрыть панель" : "Находки и помощник"}</span></button>
         </div>
       </div>
       {reportError && <LoadError title="Отчёт недоступен" message={reportError} onRetry={report} busy={reportBusy || busyIds.size > 0} />}
@@ -225,6 +231,7 @@ function InspectionDetails({ id }: { id: string }) {
     <div className="workbench" data-panel-open={panelOpen}>
       <div className="video-column min-w-0 space-y-3">
         <VideoPlayer ref={player} inspectionId={insp.id} durationSec={insp.duration_sec} findings={findings ?? []}
+          onTimeChange={seconds => setVideoTime(previous => seconds === null ? null : previous !== null && Math.floor(previous) === Math.floor(seconds) ? previous : seconds)}
           selectedId={selectedId} findingsLoading={status === "done" && (findingsLoading || (findings === null && !findingsError))}
           findingsUnavailable={!!findingsError} onSelectFinding={(f) => selectFinding(f, true)}
           emptyMessage={insp.status === "failed" ? "Обработка завершилась ошибкой. Находки недоступны." : insp.status !== "done" ? "Находки появятся после обработки видео." : undefined} />
@@ -239,7 +246,18 @@ function InspectionDetails({ id }: { id: string }) {
         </dl></details>}
       </div>
 
-      <aside id="findings-panel" hidden={!panelOpen} className="min-w-0 space-y-4" aria-label="Результаты анализа">
+      <aside id="findings-panel" hidden={!panelOpen} className="findings-panel min-w-0 space-y-3" aria-label="Результаты анализа">
+        <div className="flex border-b border-line" role="tablist" aria-label="Панель проверки видео" onKeyDown={event => {
+          const current = workspaceTab === "findings" ? 0 : 1;
+          const next = event.key === "Home" ? 0 : event.key === "End" ? 1 : event.key === "ArrowRight" || event.key === "ArrowLeft" ? 1-current : null;
+          if (next !== null) {event.preventDefault(); setWorkspaceTab(next === 0 ? "findings" : "assistant"); tabButtons.current[next]?.focus();}
+        }}>
+          {(["findings", "assistant"] as const).map((tab, index) => <button key={tab} ref={element => {tabButtons.current[index]=element;}} type="button" role="tab" id={`review-tab-${tab}`}
+            aria-selected={workspaceTab === tab} aria-controls={`review-panel-${tab}`} tabIndex={workspaceTab === tab ? 0 : -1} onClick={() => setWorkspaceTab(tab)}
+            className={`flex min-h-11 min-w-0 flex-1 items-center justify-center gap-2 border-b-2 px-2 text-sm ${workspaceTab === tab ? "border-accent text-fg" : "border-transparent text-muted hover:bg-surface2"}`}>
+            {tab === "assistant" && <Icon name="sparkles" size={16} />}{tab === "findings" ? "Находки" : "ИИ-помощник"}</button>)}
+        </div>
+        <div id="review-panel-findings" role="tabpanel" aria-labelledby="review-tab-findings" hidden={workspaceTab !== "findings"} className="space-y-3">
         <div className="flex items-center justify-between gap-2"><h2 className="section-title">Находки <span className="ml-1 text-sm font-normal text-muted">{total ?? "—"}</span></h2>
           {selectedId && <span className="text-xs text-accent">Выбрана находка</span>}</div>
         <label className="block"><span className="sr-only">Статус находок</span>
@@ -249,7 +267,7 @@ function InspectionDetails({ id }: { id: string }) {
         </label>
         {findingsError && <LoadError title="Не удалось загрузить находки" message={findingsError}
           onRetry={() => setFindingsRetry((x) => x + 1)} busy={findingsLoading} />}
-        <div className="divide-y divide-line" aria-busy={findingsLoading}>
+        <div className="findings-list divide-y divide-line" aria-busy={findingsLoading}>
           {insp.status !== "done" && <p className="rounded-xl border border-dashed border-line px-5 py-8 text-center text-sm text-muted">
             {insp.status === "failed" ? "Находки недоступны из-за ошибки обработки." : "Находки появятся после обработки."}</p>}
           {insp.status === "done" && findings === null && !findingsError && <div className="skeleton h-48" role="status" aria-label="Загрузка находок" />}
@@ -262,6 +280,12 @@ function InspectionDetails({ id }: { id: string }) {
               onSelect={(f) => selectFinding(f)} onSeek={(seconds) => player.current?.seekTo(seconds)} onDecide={decide}
               error={decisionErrors[finding.id]?.message} onRetry={decisionErrors[finding.id] ? () => decide(finding.id, decisionErrors[finding.id].next) : undefined} />
           </div>)}
+        </div>
+        </div>
+        <div id="review-panel-assistant" role="tabpanel" aria-labelledby="review-tab-assistant" hidden={workspaceTab !== "assistant"} className="ml-auto max-w-[400px]">
+          <AssistantPanel context={{page: "inspection", inspection: {id: insp.id, title: insp.title}, timecodeSec: videoTime}}
+            getCurrentTime={() => player.current?.getCurrentTime() ?? null}
+            onClose={() => {setPanelOpen(false); panelToggle.current?.focus();}} />
         </div>
       </aside>
     </div>

@@ -4,6 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { logout, USE_MOCKS } from "@/lib/api";
 import { getToken } from "@/lib/auth";
+import { initialSidebarCollapsed } from "@/lib/layout";
 import { Header } from "./Header";
 import { Sidebar } from "./Sidebar";
 
@@ -15,7 +16,9 @@ export function Shell({ children }: { children: ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   const mobileNav = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    try { setCollapsed(localStorage.getItem("ls_sidebar_collapsed") === "true"); } catch { /* session-only layout */ }
+    let saved: string | null = null;
+    try { saved = localStorage.getItem("ls_sidebar_collapsed"); } catch { /* session-only layout */ }
+    setCollapsed(initialSidebarCollapsed(saved, window.innerWidth));
   }, []);
   function toggleSidebar() {
     const next = !collapsed;
@@ -53,7 +56,7 @@ export function Shell({ children }: { children: ReactNode }) {
       <Header pathname={pathname} menuOpen={menuOpen} onToggleMenu={() => setMenuOpen((open) => !open)} onLogout={onLogout} />
       <div ref={mobileNav} id="mobile-navigation" hidden={!menuOpen}><Sidebar pathname={pathname} mobile onNavigate={() => setMenuOpen(false)} /></div>
       {USE_MOCKS && <p role="status" className="border-b border-warn/30 bg-warn-soft px-5 py-2 text-xs text-warn">Демонстрационный режим · Все данные на этой странице являются примерами.</p>}
-      <main id="main-content" className="mx-auto max-w-[1760px] px-4 py-5 md:px-6 md:py-6">{ready ? children : null}</main>
+      <main id="main-content" className="mx-auto max-w-[1760px] px-4 py-4 md:px-5 md:py-5">{ready ? children : null}</main>
     </div>
   );
 }

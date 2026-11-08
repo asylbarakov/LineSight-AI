@@ -1,9 +1,39 @@
 import type { InspectionStatus, InspectionSummary, Metrics } from "./types";
 
-/** These APIs expose no global defect classification or engineer-confirmed defect counts.
- * findings_count includes visibility/equipment observations and cannot substitute for either. */
+export function mergeDashboardData(previous: {inspections: InspectionSummary[] | null; metrics: Metrics | null},
+  list: PromiseSettledResult<InspectionSummary[]>, metrics: PromiseSettledResult<Metrics>) {
+  return {inspections: list.status === "fulfilled" ? list.value : previous.inspections,
+    metrics: metrics.status === "fulfilled" ? metrics.value : previous.metrics};
+}
+
+/** One in-flight refresh; mutation/focus bursts queue at most one follow-up. */
+export function startDashboardPolling(load: () => Promise<boolean>, visible = () => true) {
+  let stopped = false, running = false, queued = false;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const refresh = async () => {
+    if (stopped) return;
+    clearTimeout(timer);
+    if (running) { queued = true; return; }
+    if (!visible()) { timer = setTimeout(refresh, 30000); return; }
+    running = true;
+    let active = true;
+    try { active = await load(); }
+    catch { /* Retry transport failures without synthesizing data. */ }
+    finally {
+      running = false;
+      if (!stopped) {
+        if (queued) { queued = false; void refresh(); }
+        else timer = setTimeout(refresh, active ? 5000 : 30000);
+      }
+    }
+  };
+  void refresh();
+  return {refresh: () => { void refresh(); }, stop: () => { stopped = true; clearTimeout(timer); }};
+}
+
+/** Only server aggregates are authoritative. Missing fields from an older API stay unavailable. */
 export function dashboardSummary(rows: InspectionSummary[] | null, metrics: Metrics | null) {
-  return {total: metrics?.inspections_total ?? rows?.length ?? null, detectedDefects: null, confirmedDefects: null};
+  return {total: metrics?.inspections_total ?? null, detectedDefects: metrics?.detected_defects_total ?? null, confirmedDefects: metrics?.confirmed_defects_total ?? null};
 }
 
 export type InspectionFilter = "all" | InspectionStatus;

@@ -19,16 +19,16 @@ export function Sidebar({ pathname, mobile = false, collapsed, onCollapse, onNav
       <Icon name={item.icon} /><span className="nav-label">{item.label}</span>
     </Link>;
   };
-  return <aside data-sidebar className={mobile ? "border-b border-sidebar-line bg-sidebar p-3 text-sidebar-fg lg:hidden" : "desktop-sidebar fixed inset-y-0 left-0 z-40 hidden flex-col border-r border-sidebar-line bg-sidebar px-3 text-sidebar-fg lg:flex"}>
-    {!mobile && <Link href="/dashboard" aria-label="LineSight AI — обзор" className="flex h-[var(--header-height)] items-center gap-2.5 px-2">
+  return <aside data-sidebar className={mobile ? "max-h-[calc(100svh-var(--header-height))] overflow-y-auto overscroll-contain border-b border-sidebar-line bg-sidebar p-3 text-sidebar-fg lg:hidden" : "desktop-sidebar fixed inset-y-0 left-0 z-40 hidden overflow-y-auto overscroll-contain flex-col border-r border-sidebar-line bg-sidebar px-3 text-sidebar-fg lg:flex"}>
+    {!mobile && <Link href="/dashboard" aria-label="LineSight AI — обзор" className="flex h-[var(--header-height)] shrink-0 items-center gap-2.5 px-2">
       <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-sidebar-line"><Icon name="video" size={16} /></span>
       <span className="nav-label whitespace-nowrap text-sm font-semibold">LineSight AI</span>
     </Link>}
-    <nav aria-label="Основная навигация" className="space-y-1">{NAV_ITEMS.filter(item => !item.demo).map(link)}</nav>
-    <nav aria-label="Демонстрационные страницы" className="mt-6 space-y-1 border-t border-sidebar-line pt-3">
+    <nav aria-label="Основная навигация" className="shrink-0 space-y-1">{NAV_ITEMS.filter(item => !item.demo).map(link)}</nav>
+    <nav aria-label="Демонстрационные страницы" className="mt-4 shrink-0 space-y-1 border-t border-sidebar-line pt-3">
       <p className="nav-caption px-3 pb-1 text-xs text-sidebar-muted">В разработке · демо</p>{NAV_ITEMS.filter(item => item.demo).map(link)}
     </nav>
-    {!mobile && <div className="mt-auto border-t border-sidebar-line py-3">
+    {!mobile && <div className="mt-auto shrink-0 border-t border-sidebar-line py-3">
       <button type="button" onClick={onCollapse} aria-label={collapsed ? "Развернуть боковую панель" : "Свернуть боковую панель"} aria-expanded={!collapsed}
         className="nav-link flex min-h-11 w-full items-center gap-3 rounded-md px-3 text-sidebar-muted hover:bg-sidebar-active"><Icon name="panel" /><span className="nav-label text-sm">Свернуть</span></button>
     </div>}

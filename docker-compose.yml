@@ -1,11 +1,13 @@
-# Запуск: cp .env.example .env && docker compose up --build
+# Portable defaults. See DOCKER_OPERATIONS.md; local overrides stay outside Git.
 # Порты открыты только на 127.0.0.1; Postgres наружу не публикуется.
+name: linesight-ai-frontend-ui
+
 services:
   postgres:
     image: postgres:16-alpine
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-linesight}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-linesight}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
       POSTGRES_DB: ${POSTGRES_DB:-linesight}
     volumes:
       - pgdata:/var/lib/postgresql/data
@@ -17,6 +19,7 @@ services:
     restart: unless-stopped
 
   api:
+    image: linesight-ai-frontend-ui-api:current
     build:
       context: .
       dockerfile: backend/Dockerfile
@@ -32,7 +35,7 @@ services:
       - media_data:/data
       - ./data/demo:/data/demo
     ports:
-      - "127.0.0.1:8000:8000"
+      - "127.0.0.1:${API_PORT:-8000}:8000"
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8000/health"]
       interval: 10s
@@ -41,12 +44,11 @@ services:
     restart: unless-stopped
 
   worker:
+    image: linesight-ai-frontend-ui-worker:current
     build:
       context: .
       dockerfile: backend/Dockerfile
       args:
-        # 0 — без нейросети (DETECTOR=none, приёмочная сборка): образ собирается за пару минут.
-        # 1 — с ultralytics и PyTorch (несколько ГБ, долгая сборка): INSTALL_YOLO=1 docker compose up --build
         INSTALL_YOLO: ${INSTALL_YOLO:-0}
     command: ["python", "-m", "app.worker"]
     env_file: .env
@@ -74,6 +76,7 @@ services:
     restart: unless-stopped
 
   web:
+    image: linesight-ai-frontend-ui-web:current
     build:
       context: frontend
       args:
@@ -84,7 +87,13 @@ services:
       api:
         condition: service_healthy
     ports:
-      - "127.0.0.1:3000:3000"
+      - "127.0.0.1:${WEB_PORT:-3004}:3000"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/login').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
     restart: unless-stopped
 
 volumes:

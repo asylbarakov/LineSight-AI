@@ -54,11 +54,10 @@ export function UploadForm({ onUploaded }: { onUploaded: (id: string) => void })
 
   const uploading = progress !== null;
   return (
-    <form onSubmit={submit} className="rounded-xl border border-line bg-surface p-5">
-      <h2 className="section-title">Новая инспекция</h2>
-      <p className="mt-1 max-w-prose text-base text-muted">MP4 до {MAX_UPLOAD_MB} МБ. Одна загрузка создаёт одну видеоинспекцию.</p>
+    <form onSubmit={submit} aria-label="Загрузка новой инспекции" className="border-t border-line p-4">
+      <p className="max-w-prose text-base text-muted">MP4 до {MAX_UPLOAD_MB} МБ. Одна загрузка создаёт одну видеоинспекцию.</p>
       <div className="mt-4 grid gap-4 md:grid-cols-[1fr_1fr_auto] md:items-end">
-        <label className="block text-label">
+        <label className="block min-w-0 text-label">
           <span className="mb-1 block text-muted">Видео (MP4)</span>
           <input
             ref={input}
@@ -66,13 +65,15 @@ export function UploadForm({ onUploaded }: { onUploaded: (id: string) => void })
             accept="video/mp4,.mp4"
             disabled={uploading}
             onChange={(e) => pick(e.target.files?.[0] ?? null)}
-            className="block w-full text-sm text-muted file:mr-3 file:rounded-md file:border-0 file:bg-surface2 file:px-3 file:py-2 file:text-sm file:text-fg"
+            className="block min-h-11 w-full text-sm text-muted file:mr-3 file:min-h-11 file:rounded-md file:border-0 file:bg-surface2 file:px-3 file:py-2 file:text-sm file:text-fg"
           />
         </label>
-        <label className="block text-label">
+        <label className="block min-w-0 text-label">
           <span className="mb-1 block text-muted">Название</span>
           <input
             value={title}
+            name="inspection-title"
+            autoComplete="off"
             disabled={uploading}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Облёт участка 1"

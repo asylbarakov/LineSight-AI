@@ -41,9 +41,9 @@ export function VideoTimeline({ findings, duration, currentTime, selectedId, loa
     setExpanded(null);
     setHovered(null);
   }
-  return <div className="border-t border-line p-4" aria-label="Шкала видео с находками"
+  return <div className="border-t border-line p-3" aria-label="Шкала видео с находками"
     onMouseLeave={() => setHovered(null)} onKeyDown={event => { if (event.key === "Escape") closeGroup(); }}>
-    <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+    <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
       <h2 className="section-title">Находки на видео</h2><span className="text-xs tabular-nums text-muted">{findingTimecode(time)} / {valid ? findingTimecode(duration) : "—"}</span>
     </div>
     <div className="relative mx-[22px]" ref={track}>
@@ -58,7 +58,7 @@ export function VideoTimeline({ findings, duration, currentTime, selectedId, loa
         onChange={event => onSeek(Number(event.target.value))} aria-label="Позиция воспроизведения"
         aria-valuetext={`${findingTimecode(time)} из ${valid ? findingTimecode(duration) : "неизвестной длительности"}`}
         className="block h-6 w-full accent-accent" />
-      <div className="relative h-12">
+      <div className="relative h-11">
         {valid && <span aria-hidden="true" className="absolute inset-y-0 w-px bg-accent/60" style={{left: `${time / duration * 100}%`}} />}
         {groups.map(group => {
           const first = group.findings[0];
@@ -78,7 +78,6 @@ export function VideoTimeline({ findings, duration, currentTime, selectedId, loa
           </button>;
         })}
       </div>
-      <div className="flex justify-between text-xs tabular-nums text-muted" aria-hidden="true"><span>00:00</span><span>{valid ? findingTimecode(duration) : "—"}</span></div>
     </div>
     {open && <section id={groupId} aria-label="Находки с близкими таймкодами" className="mt-4 rounded-md border border-line bg-surface2 p-2">
       <div className="flex items-center justify-between pl-2"><h3 className="text-xs font-medium">Близкие таймкоды · {open.findings.length}</h3><button type="button" className="icon-button" aria-label="Закрыть группу находок" onClick={closeGroup}><Icon name="close" size={16} /></button></div>
@@ -93,7 +92,7 @@ export function VideoTimeline({ findings, duration, currentTime, selectedId, loa
         return <span key={priority} className="inline-flex items-center gap-1.5"><Icon name={iconFor(sample)} size={16} style={{color: findingMarkerStyle(sample).color}} />{PRIORITY_RU[priority]}</span>;
       })}
     </div>
-    <div className="mt-3 text-xs leading-5 text-muted" aria-live="polite">
+    <div className="text-xs leading-5 text-muted empty:hidden [&:not(:empty)]:mt-2" aria-live="polite">
       {loading ? <p>Загрузка находок…</p> : unavailable ? <p>Маркеры недоступны. Повторите загрузку в панели находок.</p> : !findings.length ? <p>{emptyMessage}</p> : !valid ? <p>Ожидание длительности видео для расстановки маркеров.</p> : null}
       {invalid > 0 && <p className="text-warn">Находок с таймкодами вне видео: {invalid}. Они доступны в списке.</p>}
     </div>

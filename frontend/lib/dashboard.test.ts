@@ -1,14 +1,29 @@
 import { describe, expect, it } from "vitest";
 import { dashboardSummary, filterInspections, inspectionActivity, summarizeInspections } from "./dashboard";
+import * as dashboard from "./dashboard";
 import type { InspectionStatus, InspectionSummary } from "./types";
 
 const row = (id: string, status: InspectionStatus, created_at: string | null, title = id, findings_count = 0): InspectionSummary =>
   ({ id, status, created_at, title, findings_count });
 
 describe("Dashboard inspections", () => {
+  it("keeps last-good aggregates on API failure and never invents zero on initial failure", () => {
+    const merge = (dashboard as unknown as {mergeDashboardData?: (previous: unknown, list: unknown, metrics: unknown) => {metrics: unknown}}).mergeDashboardData;
+    expect(merge).toBeTypeOf("function");
+    const failed = {status: "rejected", reason: Error("offline")};
+    const previous = {inspections: [], metrics: {inspections_total: 4, detected_defects_total: 2, confirmed_defects_total: 0}};
+    expect(merge!(previous, failed, failed).metrics).toEqual(previous.metrics);
+    expect(merge!({inspections: null, metrics: null}, failed, failed).metrics).toBeNull();
+  });
+  it("replaces recovered aggregates after a delayed worker result or review update", () => {
+    const metrics = {inspections_total: 1, detected_defects_total: 1, confirmed_defects_total: 1, avg_processing_sec: null, avg_fps: null, failed_share: 0, recent_runs: []};
+    const current = dashboard.mergeDashboardData({inspections: [], metrics: {...metrics, detected_defects_total: 0, confirmed_defects_total: 0}},
+      {status: "fulfilled", value: []}, {status: "fulfilled", value: metrics});
+    expect(dashboardSummary(current.inspections, current.metrics)).toEqual({total: 1, detectedDefects: 1, confirmedDefects: 1});
+  });
   it("exposes exactly three KPI values without treating all findings as defects", () => {
     const rows = [row("a", "done", null, "Inspection", 27)];
-    expect(dashboardSummary(rows, null)).toEqual({total: 1, detectedDefects: null, confirmedDefects: null});
+    expect(dashboardSummary(rows, null)).toEqual({total: null, detectedDefects: null, confirmedDefects: null});
     expect(dashboardSummary(null, null)).toEqual({total: null, detectedDefects: null, confirmedDefects: null});
   });
   it("keeps absent defect aggregates unavailable even with zero inspections or counts of all confirmed observations", () => {
@@ -19,6 +34,11 @@ describe("Dashboard inspections", () => {
     const metrics = {inspections_total: 0, avg_processing_sec: null, avg_fps: null, failed_share: 0, recent_runs: []};
     expect(dashboardSummary([row("a", "done", null)], metrics).total).toBe(0);
     expect(dashboardSummary([], {...metrics, inspections_total: 42}).total).toBe(42);
+  });
+  it("uses persisted defect aggregates including zero without counting observations", () => {
+    const metrics = {inspections_total: 4, detected_defects_total: 2, confirmed_defects_total: 1, avg_processing_sec: null, avg_fps: null, failed_share: 0, recent_runs: []};
+    expect(dashboardSummary([], metrics)).toEqual({total: 4, detectedDefects: 2, confirmedDefects: 1});
+    expect(dashboardSummary([], {...metrics, detected_defects_total: 0, confirmed_defects_total: 0})).toEqual({total: 4, detectedDefects: 0, confirmedDefects: 0});
   });
   it("combines case-insensitive Russian search and status without mutating source data", () => {
     const rows = [row("a", "done", "2026-11-03T00:00:00Z", "Северная ЛЭП"), row("b", "failed", "2026-11-04T00:00:00Z", "Северная ЛЭП")];

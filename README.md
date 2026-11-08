@@ -9,9 +9,9 @@
 | Папка | Что внутри |
 | --- | --- |
 | `backend/` | FastAPI: API, БД, хранилище, воркер (очередь в Postgres) |
-| `frontend/` | Next.js + TypeScript + Tailwind, тёмная тема |
+| `frontend/` | Next.js + TypeScript + Tailwind, светлая/тёмная темы и демо-помощник |
 | `ml/` | Предобработка, детекция, трекинг, находки, обучение, синтетика |
-| `data/` | Видео, кадры, веса, демо-данные (в git не попадает) |
+| `data/` | Локальные видео, кадры и веса; существующие командные fixtures сохранены, новые runtime-данные исключены из Git |
 | `docs/` | Архитектура и заметки |
 
 Подробнее: [docs/architecture.md](docs/architecture.md).
@@ -19,11 +19,16 @@
 ## Быстрый старт
 
 ```bash
-cp .env.example .env      # поменяйте ADMIN_PASSWORD и SECRET_KEY
-docker compose up --build
+cp .env.example .env      # задайте свои пароли, DATABASE_URL и постоянный SECRET_KEY
+docker compose --project-name linesight-ai-frontend-ui build api worker web
+docker compose --project-name linesight-ai-frontend-ui up -d --no-build
 ```
 
-Интерфейс: http://127.0.0.1:3000, API: http://127.0.0.1:8000/docs.
+Интерфейс: http://127.0.0.1:3004, API: http://127.0.0.1:8000/docs.
+Порты настраиваются через `WEB_PORT` / `API_PORT`. Для существующего окружения сначала
+прочитайте [Docker-инструкцию](DOCKER_OPERATIONS.md): локальный ignored override может
+выбирать уже восстановленные тома и образы. Не заменяйте рабочий `.env` примером.
+Возможности Frontend и проверки описаны в [docs/frontend.md](docs/frontend.md).
 
 Приёмочная сборка собирается без нейросети (`DETECTOR=none`, `INSTALL_YOLO=0`), это занимает несколько минут. Образ воркера с YOLO весит несколько ГБ (PyTorch) и собирается долго: `INSTALL_YOLO=1 DETECTOR=yolo docker compose up --build`.
 
@@ -143,13 +148,19 @@ PDF на русском. `409`, если инспекция ещё не `done`.
 
 ```json
 {
-  "inspections_total": 7, "avg_processing_sec": 41.2, "avg_fps": 10.8, "failed_share": 0.14,
+  "inspections_total": 7, "detected_defects_total": 3, "confirmed_defects_total": 1,
+  "avg_processing_sec": 41.2, "avg_fps": 10.8, "failed_share": 0.14,
   "recent_runs": [
     { "id": "5b1f…", "title": "…", "status": "done", "fps": 11.3,
       "stage_times": { "decode": 3.1, "detect": 18.4 } }
   ]
 }
 ```
+
+Пример выше иллюстративный. Счётчики вычисляются по persisted-записям; недостаточная
+видимость и посторонние предметы не являются дефектами оборудования. Подтверждённые
+дефекты — подмножество обнаруженных со статусом `confirmed`. Полные правила:
+[Dashboard KPI contract](frontend/DASHBOARD_KPI_API_REQUIREMENTS.md).
 
 ---
 

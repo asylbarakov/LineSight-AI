@@ -7,7 +7,7 @@ import { findingTimecode, isVideoDuration } from "@/lib/timeline";
 import type { Finding } from "@/lib/types";
 import { VideoTimeline } from "./VideoTimeline";
 
-export interface VideoPlayerHandle { seekTo: (seconds: number) => void }
+export interface VideoPlayerHandle { seekTo: (seconds: number) => void; getCurrentTime: () => number | null }
 interface Props {
   inspectionId: string;
   durationSec: number | null;
@@ -17,10 +17,11 @@ interface Props {
   findingsUnavailable?: boolean;
   emptyMessage?: string;
   onSelectFinding: (finding: Finding) => void;
+  onTimeChange?: (seconds: number | null) => void;
 }
 
 export const VideoPlayer = forwardRef<VideoPlayerHandle, Props>(function VideoPlayer({ inspectionId, durationSec,
-  findings, selectedId, findingsLoading, findingsUnavailable, emptyMessage, onSelectFinding }, ref) {
+  findings, selectedId, findingsLoading, findingsUnavailable, emptyMessage, onSelectFinding, onTimeChange }, ref) {
   const video = useRef<HTMLVideoElement>(null);
   const pendingSeek = useRef<number | null>(null);
   const [duration, setDuration] = useState(0);
@@ -61,7 +62,7 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, Props>(function VideoPl
   useImperativeHandle(ref, () => ({ seekTo: (seconds) => {
     seekTo(seconds);
     scrollToElement(video.current);
-  } }), [seekTo]);
+  }, getCurrentTime: () => video.current && video.current.readyState >= 1 && !video.current.error ? video.current.currentTime : null }), [seekTo]);
 
   function syncDuration() {
     const el = video.current;
@@ -82,9 +83,9 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, Props>(function VideoPl
     <section className="min-w-0 overflow-visible rounded-md border border-line bg-surface" aria-label="Видео инспекции">
       <div className="relative rounded-t-lg bg-media">
         <video ref={video} src={videoUrl(inspectionId)} controls preload="metadata"
-          onLoadedMetadata={() => { syncDuration(); setLoaded(true); setVideoError(false); if (pendingSeek.current !== null) seekTo(pendingSeek.current); }}
-          onDurationChange={syncDuration} onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
-          onSeeked={(e) => setCurrentTime(e.currentTarget.currentTime)} onError={() => { setVideoError(true); setLoaded(false); }}
+          onLoadedMetadata={() => { syncDuration(); setLoaded(true); setVideoError(false); if (pendingSeek.current !== null) seekTo(pendingSeek.current); onTimeChange?.(video.current?.currentTime ?? 0); }}
+          onDurationChange={syncDuration} onTimeUpdate={(e) => {setCurrentTime(e.currentTarget.currentTime); onTimeChange?.(e.currentTarget.currentTime);}}
+          onSeeked={(e) => {setCurrentTime(e.currentTarget.currentTime); onTimeChange?.(e.currentTarget.currentTime);}} onError={() => { setVideoError(true); setLoaded(false); onTimeChange?.(null); }}
           className="inspection-video aspect-video w-full rounded-t-md bg-media" aria-label="Запись инспекции" />
         {!loaded && !videoError && <p className="pointer-events-none absolute left-4 top-4 rounded-md bg-surface px-3 py-2 text-xs text-muted" role="status">Загрузка видео…</p>}
       </div>

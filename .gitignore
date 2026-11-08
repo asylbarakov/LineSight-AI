@@ -2,8 +2,32 @@
 data/*
 !data/.gitkeep
 .env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
 *.pt
 *.onnx
+*.dump
+*.sqlite
+*.sqlite3
+*.db
+*.log
+/uploads/
+/media/
+/reports/
+
+# Workstation-specific deployment overrides and historical local validation reports.
+/docker-compose.override.yml
+/docker-compose.override.yaml
+/backend/Dockerfile.api
+/frontend/AI_ASSISTANT_DELIVERY.md
+/frontend/KPI_DEPLOYMENT_DIAGNOSIS.md
+/frontend/KPI_FIX_DELIVERY.md
+/frontend/LAYOUT_DENSITY_DELIVERY.md
+/frontend/LOGIN_LINE_SCAN_DELIVERY.md
+/frontend/LOGIN_REFERENCE_REFINEMENT.md
 
 # python
 __pycache__/

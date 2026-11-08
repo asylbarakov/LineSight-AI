@@ -5,6 +5,12 @@ import type { Decision, Finding, InspectionDetail, InspectionSummary, Metrics } 
 
 export const USE_MOCKS = process.env.NEXT_PUBLIC_USE_MOCKS === "true";
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? ""; // пусто: тот же origin, запросы идут через rewrites Next.js
+export const DATA_CHANGED_KEY = "ls_data_revision";
+function signalDataChange() {
+  if (typeof window === "undefined") return;
+  try { window.dispatchEvent?.(new Event(DATA_CHANGED_KEY)); } catch { /* non-browser clients */ }
+  try { window.localStorage.setItem(DATA_CHANGED_KEY, `${Date.now()}-${Math.random()}`); } catch { /* storage may be blocked */ }
+}
 
 export class ApiError extends Error {
   constructor(public status: number, message: string, public errorCode?: string) {
@@ -90,7 +96,7 @@ export async function logout(): Promise<void> {
 }
 
 export const listInspections = (): Promise<InspectionSummary[]> =>
-  USE_MOCKS ? delay(mockInspections) : request("/api/inspections");
+  USE_MOCKS ? delay(mockInspections) : request("/api/inspections", {cache: "no-store"});
 
 export const getInspection = (id: string): Promise<InspectionDetail> =>
   USE_MOCKS ? delay(mockDetail(id)) : request(`/api/inspections/${id}`);
@@ -98,16 +104,19 @@ export const getInspection = (id: string): Promise<InspectionDetail> =>
 export const getFindings = (id: string): Promise<Finding[]> =>
   USE_MOCKS ? delay(mockFindings) : request(`/api/inspections/${id}/findings`);
 
-export const patchFinding = (id: string, status: Decision): Promise<Finding> =>
-  USE_MOCKS
+export const patchFinding = async (id: string, status: Decision): Promise<Finding> => {
+  const saved: Finding = await (USE_MOCKS
     ? delay(mockPatch(id, status))
-    : request(`/api/findings/${id}`, {
+    : request<Finding>(`/api/findings/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),
-      });
+      }));
+  signalDataChange();
+  return saved;
+};
 
-export const getMetrics = (): Promise<Metrics> => (USE_MOCKS ? delay(mockMetrics) : request("/api/metrics"));
+export const getMetrics = (): Promise<Metrics> => (USE_MOCKS ? delay(mockMetrics) : request("/api/metrics", {cache: "no-store"}));
 
 /** Загрузка с прогрессом (fetch не отдаёт прогресс отправки, поэтому XMLHttpRequest). */
 export function uploadInspection(
@@ -137,6 +146,7 @@ export function uploadInspection(
         redirectToLogin();
         reject(new ApiError(401, "Требуется вход"));
       } else if (xhr.status >= 200 && xhr.status < 300 && body.id) {
+        signalDataChange();
         resolve({ id: body.id });
       } else {
         reject(new ApiError(xhr.status, body.detail ?? `Ошибка ${xhr.status}`, body.error_code));

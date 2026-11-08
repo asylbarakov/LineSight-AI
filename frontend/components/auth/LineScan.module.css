@@ -1,40 +1,50 @@
-.scene { --scan-accent: #aab8ef; --scan-loop: 10s; grid-column: 1; grid-row: 1; display: flex; flex-direction: column; justify-content: space-between; min-width: 0; overflow: hidden; padding: 36px clamp(24px, 3.5vw, 56px) 44px; background: #121214; color: #eeeef2; border-right: 1px solid #2f2f35; }
-.sceneHeader { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-.sceneLabel { font-size: 15px; line-height: 22px; color: #eeeef2; }
-.sceneMeta { margin-top: 3px; font-size: 14px; line-height: 20px; color: #a7a7b4; }
-.motionControl { display: grid; place-items: center; width: 44px; height: 44px; flex: 0 0 auto; border: 1px solid #2f2f35; border-radius: 6px; color: #a7a7b4; }
-.motionControl:hover { background: #1e1e22; color: #eeeef2; }
-.motionControl:focus-visible { outline-color: var(--scan-accent); }
-.drawing { margin: 12px -24px; }
-.schematic { display: block; width: 100%; max-width: 720px; margin: auto; overflow: visible; stroke-linecap: round; stroke-linejoin: round; }
-.ground { stroke: #45454f; stroke-width: 1; opacity: .6; }
-.wires { stroke: #71717f; stroke-width: 1; opacity: .65; }
-.towers { stroke: #9797a8; stroke-width: 1.2; }
-.insulators { stroke: #b3b3c0; stroke-width: 2.5; }
-.scanPulse, .scanHalo { stroke: var(--scan-accent); stroke-dasharray: 36 964; animation: line-scan-travel var(--scan-loop) linear infinite; }
-.scanPulse { stroke-width: 2; opacity: .8; }
-.scanHalo { stroke-width: 9; opacity: .09; }
-.detection { stroke: var(--scan-accent); stroke-width: 1.25; opacity: 0; }
-.detection circle { fill: var(--scan-accent); stroke: none; }
-.firstDetection { animation: line-scan-first var(--scan-loop) ease-in-out infinite; }
-.secondDetection { animation: line-scan-second var(--scan-loop) ease-in-out infinite; }
-.scene[data-paused="true"] .scanPulse, .scene[data-paused="true"] .scanHalo,
-.scene[data-paused="true"] .detection { animation-play-state: paused; }
-.sceneCaption h2 { font-size: 20px; line-height: 28px; font-weight: 500; }
-.sceneCaption p { margin-top: 8px; font-size: 15px; line-height: 22px; color: #a7a7b4; }
-@keyframes line-scan-travel { from { stroke-dashoffset: 1000; } to { stroke-dashoffset: 0; } }
-@keyframes line-scan-first { 0%, 20%, 57%, 100% { opacity: 0; } 28%, 43% { opacity: .85; } }
-@keyframes line-scan-second { 0%, 57%, 91%, 100% { opacity: 0; } 65%, 78% { opacity: .85; } }
-@media (max-width: 959px) {
-  .scene { border-right: 0; border-top: 1px solid #2f2f35; padding: 24px; min-height: 220px; position: relative; }
-  .drawing { position: absolute; width: 340px; right: 24px; top: -10px; margin: 0; opacity: .65; }
-  .sceneHeader, .sceneCaption { position: relative; z-index: 1; max-width: 48%; }
-  .sceneHeader { max-width: none; }
+.scene {
+  --wire: #66758d; --tower: #8799b2; --insulator: #acb7c9;
+  --electric: #99ceff; --electric-glow: #6eacdf66; --pulse-opacity: .8;
+  --focus: #aab4f1; --focus-opacity: .6;
+  --terrain-back: #0c1220; --terrain-middle: #090f1a; --terrain-front: #080b13;
+  position: relative; grid-column: 1; grid-row: 1; min-width: 0; overflow: hidden;
+  background: radial-gradient(ellipse at 38% 76%,#16223755,transparent 62%),#080b14;
+  border-right: 1px solid #262b3a;
 }
-@media (max-width: 639px) { .scene { display: none; } }
+:global([data-theme="light"]) .scene {
+  --wire: #718399; --tower: #60748b; --insulator: #536b84;
+  --electric: #00648c; --electric-glow: transparent; --pulse-opacity: .96;
+  --focus: #285c98; --focus-opacity: .9;
+  --terrain-back: #eaf0f6; --terrain-middle: #e3eaf2; --terrain-front: #dbe4ee;
+  background: #f1f5f9; border-color: #d5dee8;
+}
+.schematic { position: absolute; inset: 0; display: block; width: 100%; height: 100%; overflow: visible; stroke-linecap: round; stroke-linejoin: round; }
+.nightSky { fill: #9aa8bc; }
+.moon { opacity: .5; }
+.stars { opacity: .3; }
+.daySky { display: none; fill: #fff; stroke: #c7d3df; stroke-width: .8; opacity: .75; }
+.distantCloud { opacity: .65; }
+:global([data-theme="light"]) .nightSky { display: none; }
+:global([data-theme="light"]) .daySky { display: inline; }
+.terrainBack { fill: var(--terrain-back); }
+.terrainMiddle { fill: var(--terrain-middle); }
+.terrainFront { fill: var(--terrain-front); }
+.tower { stroke: var(--tower); stroke-width: 1.15; }
+.rearSteel { opacity: .28; }
+.secondarySteel { opacity: .32; stroke-width: .7; }
+.nearLayer { transform: translate(var(--near-x),var(--near-y)); }
+.farLayer { opacity: .65; transform: translate(var(--far-x),var(--far-y)); }
+.terrainLayer { transform: translate(var(--terrain-x),var(--terrain-y)); }
+.nearLayer, .farLayer, .terrainLayer { transform-box: view-box; transform-origin: 0 0; }
+.insulators { stroke: var(--insulator); stroke-width: 1.3; }
+.wires { stroke: var(--wire); stroke-width: .75; opacity: .75; }
+.pulse { stroke: var(--electric); stroke-width: 2; stroke-dasharray: 22 978; opacity: var(--pulse-opacity); filter: drop-shadow(0 0 2px var(--electric-glow)); animation: current-flow 10s linear infinite; }
+.pulse0 { --rest-offset: 170; animation-delay: 0s; }
+.pulse1 { --rest-offset: 450; animation-delay: -3.3s; opacity: calc(var(--pulse-opacity) * .82); }
+.pulse2 { --rest-offset: 700; animation-delay: -6.6s; opacity: calc(var(--pulse-opacity) * .88); }
+.focusBrackets { stroke: var(--focus); stroke-width: 1.8; opacity: 0; animation: detail-focus 18s ease-in-out infinite; }
+@keyframes current-flow { from { stroke-dashoffset: 1000; } to { stroke-dashoffset: 0; } }
+@keyframes detail-focus { 0%, 79%, 94%, 100% { opacity: 0; } 84%, 88% { opacity: var(--focus-opacity); } }
+@media (max-width: 767px) { .scene { display: none; } }
 @media (prefers-reduced-motion: reduce) {
-  .scanPulse, .scanHalo, .detection { animation: none; }
-  .scanPulse, .scanHalo { display: none; }
-  .detection { opacity: .55; }
-  .motionControl { display: none; }
+  .pulse, .focusBrackets { animation: none; }
+  .pulse { stroke-dashoffset: var(--rest-offset); filter: none; }
+  .focusBrackets { opacity: var(--focus-opacity); }
+  .nearLayer, .farLayer, .terrainLayer { transform: none; }
 }

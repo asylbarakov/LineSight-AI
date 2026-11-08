@@ -9,7 +9,8 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from typing import Iterable
 
-from sqlalchemy import func, select, update
+from sqlalchemy import case, func, select, update
+from .defect_policy import is_equipment_defect
 from sqlalchemy.orm import Session
 
 from .db import (
@@ -242,6 +243,19 @@ def set_finding_status(session: Session, finding_id: str, status: str) -> Findin
 
 def metrics(session: Session, recent: int = 10) -> dict:
     total = session.execute(select(func.count(Inspection.id))).scalar_one()
+    # Aggregate persisted rows in SQL, then classify the small set of type buckets
+    # using the equipment taxonomy (ML scoring also includes hazards).
+    # No finding entities are loaded; priority is not a semantic category.
+    buckets = session.execute(
+        select(Finding.type, func.count(Finding.id),
+               func.sum(case((Finding.status == "confirmed", 1), else_=0)))
+        .group_by(Finding.type)
+    ).all()
+    detected = confirmed = 0
+    for finding_type, count, approved in buckets:
+        if is_equipment_defect(finding_type):
+            detected += count
+            confirmed += approved
     failed = session.execute(
         select(func.count(Inspection.id)).where(Inspection.status == STATUS_FAILED)
     ).scalar_one()
@@ -262,6 +276,8 @@ def metrics(session: Session, recent: int = 10) -> dict:
     )
     return {
         "inspections_total": total,
+        "detected_defects_total": int(detected),
+        "confirmed_defects_total": int(confirmed),
         "avg_processing_sec": round(sum(times) / len(times), 2) if times else None,
         "avg_fps": round(sum(fps_values) / len(fps_values), 2) if fps_values else None,
         "failed_share": round(failed / total, 3) if total else 0.0,

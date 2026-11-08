@@ -56,6 +56,8 @@ export interface MetricsRun {
 
 export interface Metrics {
   inspections_total: number;
+  detected_defects_total?: number;
+  confirmed_defects_total?: number;
   avg_processing_sec: number | null;
   avg_fps: number | null;
   failed_share: number;

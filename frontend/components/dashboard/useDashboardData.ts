@@ -1,28 +1,26 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { ApiError, getMetrics, listInspections } from "@/lib/api";
+import { useEffect, useRef, useState } from "react";
+import { ApiError, DATA_CHANGED_KEY, getMetrics, listInspections } from "@/lib/api";
+import { mergeDashboardData, startDashboardPolling } from "@/lib/dashboard";
 import type { InspectionSummary, Metrics } from "@/lib/types";
 
 export function useDashboardData() {
-  const [inspections, setInspections] = useState<InspectionSummary[] | null>(null);
-  const [metrics, setMetrics] = useState<Metrics | null>(null);
+  const [{inspections, metrics}, setData] = useState<{inspections: InspectionSummary[] | null; metrics: Metrics | null}>({inspections: null, metrics: null});
   const [errors, setErrors] = useState<{ inspections?: string; metrics?: string }>({});
   const [refreshing, setRefreshing] = useState(true);
   const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
-  const [revision, setRevision] = useState(0);
+  const poller = useRef<ReturnType<typeof startDashboardPolling> | null>(null);
 
   useEffect(() => {
     let alive = true;
-    let timer: ReturnType<typeof setTimeout> | undefined;
     const errorMessage = (reason: unknown) => reason instanceof ApiError ? reason.message : "Проверьте соединение с сервером.";
     const load = async () => {
       setRefreshing(true);
       // Independent failures must not hide the other API's usable data.
       const [list, summary] = await Promise.allSettled([listInspections(), getMetrics()]);
-      if (!alive) return;
-      if (list.status === "fulfilled") setInspections(list.value);
-      if (summary.status === "fulfilled") setMetrics(summary.value);
+      if (!alive) return false;
+      setData(previous => mergeDashboardData(previous, list, summary));
       setErrors({
         inspections: list.status === "rejected" ? errorMessage(list.reason) : undefined,
         metrics: summary.status === "rejected" ? errorMessage(summary.reason) : undefined,
@@ -30,13 +28,26 @@ export function useDashboardData() {
       if (list.status === "fulfilled" || summary.status === "fulfilled") setUpdatedAt(new Date());
       setRefreshing(false);
       const unauthorized = [list, summary].some((result) => result.status === "rejected" && result.reason instanceof ApiError && result.reason.status === 401);
-      if (unauthorized) return; // API client redirects to login.
+      if (unauthorized) { poller.current?.stop(); return false; } // API client redirects to login.
       const active = list.status === "fulfilled" && list.value.some((row) => row.status === "queued" || row.status === "processing");
-      timer = setTimeout(load, active ? 5000 : 30000);
+      return active || list.status === "rejected" || summary.status === "rejected";
     };
-    void load();
-    return () => { alive = false; clearTimeout(timer); };
-  }, [revision]);
+    const controller = startDashboardPolling(load, () => !document.hidden);
+    poller.current = controller;
+    const refresh = () => controller.refresh();
+    const storage = (event: StorageEvent) => { if (event.key === DATA_CHANGED_KEY) refresh(); };
+    window.addEventListener("focus", refresh);
+    window.addEventListener(DATA_CHANGED_KEY, refresh);
+    window.addEventListener("storage", storage);
+    document.addEventListener("visibilitychange", refresh);
+    return () => {
+      alive = false; controller.stop(); poller.current = null;
+      window.removeEventListener("focus", refresh);
+      window.removeEventListener(DATA_CHANGED_KEY, refresh);
+      window.removeEventListener("storage", storage);
+      document.removeEventListener("visibilitychange", refresh);
+    };
+  }, []);
 
-  return { inspections, metrics, errors, refreshing, updatedAt, refresh: () => setRevision((value) => value + 1) };
+  return { inspections, metrics, errors, refreshing, updatedAt, refresh: () => poller.current?.refresh() };
 }
