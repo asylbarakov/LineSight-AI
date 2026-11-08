@@ -1,0 +1,19 @@
+# check=skip=InvalidDefaultArgInFrom
+# RUNTIME_IMAGE is intentionally required, avoiding a machine-specific default tag.
+# Build-only validation: requires an already built API or Worker runtime image.
+# No application container or persistent volume is used by these tests.
+ARG RUNTIME_IMAGE
+FROM ${RUNTIME_IMAGE}
+WORKDIR /srv
+COPY backend/app /srv/backend/app
+COPY backend/tests /srv/backend/tests
+COPY backend/requirements-test.txt /srv/backend/requirements-test.txt
+COPY scripts/preflight.py /srv/scripts/preflight.py
+COPY ml /srv/ml
+RUN pip install --no-cache-dir -r backend/requirements-test.txt
+WORKDIR /srv/backend
+ENV PYTHONPATH=/srv:/srv/backend PYTHONDONTWRITEBYTECODE=1 \
+    YOLO_AUTOINSTALL=false YOLO_CONFIG_DIR=/tmp/linesight-test-yolo
+# Force an isolated fallback even if the supplied runtime contains database env.
+RUN DATABASE_URL=sqlite:////tmp/linesight-test-only.db DATA_DIR=/tmp/linesight-test-only \
+    python -B -m pytest tests -q -p no:cacheprovider

@@ -1,0 +1,3 @@
+# Test tools only; do not install into the running API/Worker containers.
+pytest>=8,<10
+httpx>=0.27,<1

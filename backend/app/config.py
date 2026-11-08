@@ -7,6 +7,8 @@ import os
 import secrets
 from dataclasses import dataclass
 
+from .database_config import database_url_from_env
+
 log = logging.getLogger("linesight.config")
 
 DEFAULT_PASSWORD = "change-me"
@@ -44,7 +46,7 @@ class Settings:
             admin_password=password,
             secret_key=secret,
             token_ttl_hours=float(e.get("TOKEN_TTL_HOURS", 12)),
-            database_url=e.get("DATABASE_URL", "sqlite:///./linesight.db"),
+            database_url=database_url_from_env(e),
             data_dir=e.get("DATA_DIR", "./data"),
             max_upload_mb=int(e.get("MAX_UPLOAD_MB", 500)),
             poll_interval_sec=float(e.get("POLL_INTERVAL_SEC", 1.0)),

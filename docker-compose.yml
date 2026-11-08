@@ -1,6 +1,32 @@
 # Portable defaults. See DOCKER_OPERATIONS.md; local overrides stay outside Git.
 # Порты открыты только на 127.0.0.1; Postgres наружу не публикуется.
-name: linesight-ai-frontend-ui
+x-database-environment: &database-environment
+  POSTGRES_HOST: postgres
+  POSTGRES_PORT: "5432"
+  POSTGRES_USER: ${POSTGRES_USER:-linesight}
+  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+  POSTGRES_DB: ${POSTGRES_DB:-linesight}
+  # Ignore stale duplicate URLs from older .env files inside Compose.
+  DATABASE_URL: ""
+  DATA_DIR: /data
+  ADMIN_LOGIN: ${ADMIN_LOGIN:-admin}
+  ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Set ADMIN_PASSWORD in .env}
+  SECRET_KEY: ${SECRET_KEY:?Set a persistent SECRET_KEY in .env}
+  TOKEN_TTL_HOURS: ${TOKEN_TTL_HOURS:-12}
+  MAX_UPLOAD_MB: ${MAX_UPLOAD_MB:-500}
+  POLL_INTERVAL_SEC: ${POLL_INTERVAL_SEC:-1.0}
+  TASK_SOFT_TIME_LIMIT_SEC: ${TASK_SOFT_TIME_LIMIT_SEC:-900}
+  FRAME_STEP_SEC: ${FRAME_STEP_SEC:-0.5}
+  DETECT_CONF: ${DETECT_CONF:-0.25}
+  DETECTOR: ${DETECTOR:-none}
+  MODEL_PATH: ${MODEL_PATH:-/data/weights/best.pt}
+  SHARPNESS_MIN: ${SHARPNESS_MIN:-60.0}
+  BRIGHTNESS_MIN: ${BRIGHTNESS_MIN:-50.0}
+  LOW_VIS_MIN_SEC: ${LOW_VIS_MIN_SEC:-2.0}
+  REPORT_TZ: ${REPORT_TZ:-UTC}
+  REPORT_FONT: ${REPORT_FONT:-}
+  DEMO_DIR: ${DEMO_DIR:-/data/demo}
+  DEMO_KEEP: ${DEMO_KEEP:-0}
 
 services:
   postgres:
@@ -12,22 +38,19 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-linesight} -d ${POSTGRES_DB:-linesight}"]
+      test: ["CMD-SHELL", "PGPASSWORD=\"$${POSTGRES_PASSWORD}\" psql -h postgres -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\" -XAtqc 'SELECT 1' >/dev/null 2>&1"]
       interval: 5s
       timeout: 3s
       retries: 20
     restart: unless-stopped
 
   api:
-    image: linesight-ai-frontend-ui-api:current
     build:
       context: .
       dockerfile: backend/Dockerfile
       args:
         INSTALL_YOLO: "0"
-    env_file: .env
-    environment:
-      DATA_DIR: /data
+    environment: *database-environment
     depends_on:
       postgres:
         condition: service_healthy
@@ -44,16 +67,13 @@ services:
     restart: unless-stopped
 
   worker:
-    image: linesight-ai-frontend-ui-worker:current
     build:
       context: .
       dockerfile: backend/Dockerfile
       args:
         INSTALL_YOLO: ${INSTALL_YOLO:-0}
     command: ["python", "-m", "app.worker"]
-    env_file: .env
-    environment:
-      DATA_DIR: /data
+    environment: *database-environment
     depends_on:
       postgres:
         condition: service_healthy
@@ -76,7 +96,6 @@ services:
     restart: unless-stopped
 
   web:
-    image: linesight-ai-frontend-ui-web:current
     build:
       context: frontend
       args:

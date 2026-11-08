@@ -19,15 +19,22 @@
 ## Быстрый старт
 
 ```bash
-cp .env.example .env      # задайте свои пароли, DATABASE_URL и постоянный SECRET_KEY
-docker compose --project-name linesight-ai-frontend-ui build api worker web
-docker compose --project-name linesight-ai-frontend-ui up -d --no-build
+cp .env.example .env      # свои POSTGRES_PASSWORD, ADMIN_PASSWORD, постоянный SECRET_KEY
+# При необходимости задайте COMPOSE_PROJECT_NAME, WEB_PORT и API_PORT в .env.
+python scripts/preflight.py
+docker compose build api worker web
+docker compose up -d --no-build postgres
+python scripts/preflight.py --check-db
+docker compose up -d --no-build api worker web
 ```
 
 Интерфейс: http://127.0.0.1:3004, API: http://127.0.0.1:8000/docs.
 Порты настраиваются через `WEB_PORT` / `API_PORT`. Для существующего окружения сначала
 прочитайте [Docker-инструкцию](DOCKER_OPERATIONS.md): локальный ignored override может
 выбирать уже восстановленные тома и образы. Не заменяйте рабочий `.env` примером.
+Compose строит строку подключения API/Worker из общих `POSTGRES_*`; отдельный
+`DATABASE_URL` не нужен. Изменение `.env` не меняет пароль в существующем томе:
+безопасное восстановление доступа описано в Docker-инструкции.
 Возможности Frontend и проверки описаны в [docs/frontend.md](docs/frontend.md).
 
 Приёмочная сборка собирается без нейросети (`DETECTOR=none`, `INSTALL_YOLO=0`), это занимает несколько минут. Образ воркера с YOLO весит несколько ГБ (PyTorch) и собирается долго: `INSTALL_YOLO=1 DETECTOR=yolo docker compose up --build`.

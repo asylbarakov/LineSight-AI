@@ -26,6 +26,13 @@ RUN pip uninstall -y opencv-python opencv-contrib-python 2>/dev/null || true; \
     pip install --no-cache-dir --force-reinstall --no-deps "opencv-python-headless>=4.9" \
     && python -c "import cv2; print('cv2', cv2.__version__)"
 
+# ByteTrack otherwise tries to install lap while processing the first inspection.
+# Resolve and validate tracking dependencies at build time, without model weights.
+RUN if [ "$INSTALL_YOLO" = "1" ]; then \
+      pip install --no-cache-dir "lap>=0.5.12" \
+      && YOLO_AUTOINSTALL=false python -c "from ultralytics.trackers.byte_tracker import BYTETracker"; \
+    fi
+
 COPY backend backend
 COPY ml ml
 WORKDIR /srv/backend
