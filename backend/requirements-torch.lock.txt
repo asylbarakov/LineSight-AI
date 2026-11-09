@@ -1,0 +1,3 @@
+# Verified Linux runtime versions. Update deliberately and rerun image tests.
+torch==2.15.0+cpu
+torchvision==0.29.2+cpu

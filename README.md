@@ -18,15 +18,25 @@
 
 ## Быстрый старт
 
+Требуются Docker Engine/Desktop с Linux-контейнерами, Compose v2 и Python 3.10+.
+Из корня проекта выполните одну команду:
+
 ```bash
-cp .env.example .env      # свои POSTGRES_PASSWORD, ADMIN_PASSWORD, постоянный SECRET_KEY
-# При необходимости задайте COMPOSE_PROJECT_NAME, WEB_PORT и API_PORT в .env.
-python scripts/preflight.py
-docker compose build api worker web
-docker compose up -d --no-build postgres
-python scripts/preflight.py --check-db
-docker compose up -d --no-build api worker web
+# Linux / macOS shell
+sh ./start.sh
 ```
+
+```powershell
+# Windows PowerShell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\start.ps1
+```
+
+На новой установке скрипт создаёт собственные секреты и постоянное имя проекта,
+собирает приложение и проверяет доступ к БД. Учётные данные администратора остаются
+в локальном `.env` и не выводятся в логи. По умолчанию включён YOLO с отслеживаемыми
+весами `data/weights/best.pt`; `--ml none` явно выбирает режим без нейросетевой детекции.
+Для проверки без изменений добавьте `--check`. После `git pull` повторите ту же
+команду: `.env`, история инспекций, media и PostgreSQL сохраняются.
 
 Интерфейс: http://127.0.0.1:3004, API: http://127.0.0.1:8000/docs.
 Порты настраиваются через `WEB_PORT` / `API_PORT`. Для существующего окружения сначала
@@ -36,6 +46,9 @@ Compose строит строку подключения API/Worker из общ�
 `DATABASE_URL` не нужен. Изменение `.env` не меняет пароль в существующем томе:
 безопасное восстановление доступа описано в Docker-инструкции.
 Возможности Frontend и проверки описаны в [docs/frontend.md](docs/frontend.md).
+Первый запуск, принятие старого окружения, обновление и восстановление:
+[docs/installer.md](docs/installer.md). Для старого тома с неизвестным паролем
+автоматический сброс не выполняется.
 
 Приёмочная сборка собирается без нейросети (`DETECTOR=none`, `INSTALL_YOLO=0`), это занимает несколько минут. Образ воркера с YOLO весит несколько ГБ (PyTorch) и собирается долго: `INSTALL_YOLO=1 DETECTOR=yolo docker compose up --build`.
 

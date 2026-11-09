@@ -8,7 +8,9 @@ WORKDIR /srv
 COPY backend/app /srv/backend/app
 COPY backend/tests /srv/backend/tests
 COPY backend/requirements-test.txt /srv/backend/requirements-test.txt
-COPY scripts/preflight.py /srv/scripts/preflight.py
+COPY scripts /srv/scripts
+COPY .github/workflows /srv/.github/workflows
+COPY start.sh start.ps1 /srv/
 COPY ml /srv/ml
 RUN pip install --no-cache-dir -r backend/requirements-test.txt
 WORKDIR /srv/backend

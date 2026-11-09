@@ -48,3 +48,6 @@ out/
 
 # резервные копии
 backups/
+
+# Installer identity, volume fingerprints and rollback config. Keep locally.
+/.linesight/

@@ -1,0 +1,53 @@
+name: Deployment installer
+on:
+  pull_request:
+  push:
+    branches: [feature/linesight-frontend-ui]
+
+permissions:
+  contents: read
+
+jobs:
+  installer-contracts:
+    strategy:
+      matrix:
+        os: [ubuntu-24.04, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Installer contracts (fake Docker, no shared data)
+        env:
+          PYTHONPATH: backend
+        run: python -B -m unittest discover -s backend/tests -p "test_installer*.py" -v
+      - name: Windows entry point
+        if: runner.os == 'Windows'
+        run: .\start.ps1 --help
+      - name: Linux entry point
+        if: runner.os == 'Linux'
+        run: sh ./start.sh --help
+
+  fresh-install-and-update:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Fresh full installation (CI runner only)
+        run: sh ./start.sh --project "linesight-ci-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+      - name: Persist an isolated CI fixture and check login / proxy
+        run: python -B scripts/verify_installer_ci.py seed
+      - name: Repeat setup with the same identity and data
+        run: sh ./start.sh
+      - name: Verify data, credentials and PostgreSQL were preserved
+        run: python -B scripts/verify_installer_ci.py verify
+      - name: Stop only disposable CI services; retain data on the runner
+        if: always()
+        run: |
+          if test -f .linesight/deployment.json; then
+            python -B scripts/verify_installer_ci.py stop
+          fi

@@ -5,7 +5,28 @@ No project name, image tag, container name, IP or workstation path is fixed by t
 base Compose file. Services use the private DNS names `postgres` and `api`.
 PostgreSQL has no host port; API/web bind only to loopback.
 
-## Fresh developer installation
+## Recommended installer and update entry point
+
+Use `sh ./start.sh` on Linux or
+`powershell -NoProfile -ExecutionPolicy Bypass -File .\start.ps1` on Windows.
+Both call the same standard-library Python installer. Add `--check` for read-only
+validation. New installations generate their own persistent secrets and identity;
+repeat runs preserve them and reuse recorded volumes. Existing deployments require
+explicit `--adopt --project NAME` after a successful check with the original `.env`.
+
+Keep `.env`, `.linesight/` and any local Compose override when moving the directory.
+The saved runtime override pins the actual PostgreSQL image and external volume
+identities; the installer always includes it. Use the installer for updates rather
+than manually reconstructing a Compose command. Never delete identity files to
+"fix" an error. See [installer operations](docs/installer.md).
+
+Production Python/YOLO versions and npm dependencies are locked; Python, Node and
+PostgreSQL base images are pinned by multi-platform digest. Linux OS packages still
+come from the distribution security repositories; this is not a bit-for-bit
+offline rebuild. The full CPU ML image is validated on Linux amd64. Windows uses
+Docker Linux containers; other CPU architectures need their own ML validation.
+
+## Manual configuration (advanced / recovery)
 
 Copy `.env.example` to `.env` (`Copy-Item .env.example .env` in PowerShell).
 Edit these values before starting:
@@ -24,13 +45,16 @@ Explicit `DATABASE_URL` still works outside Compose for external DB/SQLite setup
 Do not put passwords into command arguments, shared logs or Git.
 
 ```sh
-python scripts/preflight.py
-docker compose build api worker web
-docker compose up -d --no-build postgres
-python scripts/preflight.py --check-db
+python scripts/preflight.py &&
+docker compose build api worker web &&
+docker compose up -d --no-build postgres &&
+python scripts/preflight.py --check-db &&
 docker compose up -d --no-build api worker web
 docker compose ps
 ```
+
+This shell chain stops on failure. In Windows use the provided PowerShell wrapper;
+do not paste independent commands that continue after a failed preflight.
 
 Stop if either preflight fails. It never changes records or passwords. The second
 check actually authenticates over service DNS `postgres`, using a read-only SQL
